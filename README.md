@@ -132,6 +132,10 @@ npm run cdpn:pull
 
 # Delete all linked Pens on CodePen (passes --keep-info to retain Pen metadata in .cdpn.json for the next push)
 npm run cdpn:delete
+
+# Clone an existing CodePen Pen into src/ (forwards arguments & flags to `cdpn clone`)
+npm run cdpn:clone -- https://codepen.io/username/pen/slug
+npm run cdpn:clone -- https://codepen.io/username/pen/slug group/my-demo
 ```
 
 ### Scoping & Flags
@@ -139,7 +143,7 @@ npm run cdpn:delete
 Pass an optional relative folder inside `src/` (a group, subgroup, or single demo) and/or flags through `--`:
 
 ```sh
-# Scope any command to a group, subgroup, or single demo
+# Scope any bulk sync command to a group, subgroup, or single demo
 npm run cdpn:push -- scroll-driven-animations
 npm run cdpn:delete -- view-transitions/same-document
 npm run cdpn:pull -- view-transitions/same-document/sortable
@@ -151,11 +155,16 @@ npm run cdpn:delete -- view-transitions/same-document --dry-run
 
 # Force-pull all linked demos (overwrites local changes and refreshes .cdpn.json)
 npm run cdpn:pull -- --force
+
+# Forward any `cdpn clone` options (such as --force, --json, or --help)
+npm run cdpn:clone -- --force https://codepen.io/username/pen/slug my-demo
 ```
+
+`cdpn:clone` runs `cdpn clone` inside `src/` using your `codepen.user` profile from `config.json` (when configured) and forwards all arguments and options directly to CodePen Commander.
 
 Each synced demo stores non-secret sync metadata in `.cdpn.json` (plus optional `.codepen/pen.config.json`). Keep `.cdpn.json` committed in your demos repo so sync state persists across machines. Add an optional `.cdpnignore` file inside a demo folder to exclude local-only files from syncing.
 
-Because CodePen Commander is installed alongside `codepen-demokit`, you can also invoke `npx cdpn` directly for individual Pen commands (`clone`, `fork`, `new`, `deploy`, `open`, or manually resolving conflicts inside a specific demo folder).
+Because CodePen Commander is installed alongside `codepen-demokit`, you can also invoke `npx cdpn` directly for other individual Pen commands (`fork`, `new`, `deploy`, `open`, or manually resolving conflicts inside a specific demo folder).
 
 ---
 
@@ -204,6 +213,7 @@ You can invoke the CLI directly via `npx codepen-demokit <command>` or through y
 | `codepen-demokit start [folder] [--port <port>]` | Build `dist/demos.json`, watch `src/`, and start the local static dev server (alias: `dev`). |
 | `codepen-demokit build [--watch]` | Build the static deployable site into `dist/` (optionally watching `src/` and `config.json`). |
 | `codepen-demokit cdpn <sync\|pull\|push\|delete> [folder] [--dry-run] [--force]` | Bulk sync demos with CodePen via CodePen Commander. |
+| `codepen-demokit cdpn clone [options] <url> [folder]` | Clone a CodePen Pen into `src/` via `cdpn clone` (passing through arguments & options). |
 
 ---
 

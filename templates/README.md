@@ -30,16 +30,17 @@ This repository syncs demos in `src/` with CodePen 2.0 via `codepen-demokit` (po
    npx cdpn auth status
    ```
 
-### Bulk sync commands
+### CodePen commands
 
 ```sh
 npm run cdpn:sync      # Two-way sync across src/
 npm run cdpn:push      # Push local edits and create Pens for unlinked demos
 npm run cdpn:pull      # Pull remote updates for linked demos
 npm run cdpn:delete    # Delete linked Pens on CodePen (retains Pen info in .cdpn.json)
+npm run cdpn:clone -- <url> [folder]  # Clone a Pen into src/ via `cdpn clone`
 ```
 
-Scope any command to a group, subgroup, or single demo folder inside `src/`, and pass `--dry-run` to preview:
+Scope any bulk sync command to a group, subgroup, or single demo folder inside `src/`, and pass `--dry-run` to preview:
 
 ```sh
 npm run cdpn:push -- my-group --dry-run

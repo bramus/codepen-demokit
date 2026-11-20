@@ -49,13 +49,15 @@ Every demo folder MUST be self-contained and portable so it can be opened, serve
 
 This repository uses `codepen-demokit` (powered by CodePen Commander / `cdpn` under the hood) to keep demos in `src/` synced with CodePen 2.0:
 
-- Bulk commands (configured via `codepen.user` and `codepen.defaultVisibility` in `config.json`):
+- Bulk sync commands (configured via `codepen.user` and `codepen.defaultVisibility` in `config.json`):
   - `npm run cdpn:sync` — two-way sync across `src/`
   - `npm run cdpn:push` — push local edits and create Pens for unlinked demos
   - `npm run cdpn:pull` — pull remote updates (supports `-- --force`)
   - `npm run cdpn:delete` — delete linked Pens on CodePen while keeping Pen metadata (`--keep-info`) in `.cdpn.json`
   - All bulk commands support optional folder scoping (e.g., `npm run cdpn:push -- scroll-driven-animations`) and `-- --dry-run`.
-- Single-Pen commands via `npx cdpn`:
+- Cloning a Pen into `src/`:
+  - `npm run cdpn:clone -- [options] <url> [folder]` — passes arguments through to `cdpn clone` inside `src/` using `codepen.user` from `config.json` (e.g., `npm run cdpn:clone -- https://codepen.io/user/pen/slug group/my-demo`).
+- Other single-Pen commands via `npx cdpn`:
   - Pass `--json` and explicit flags when running non-interactively (e.g., `-t "<title>"`, `--access <Public|Private|Protected|Collaborators>`, `-m "<label>"`, `--yes`).
 - Sync metadata files:
   - Commit `.cdpn.json` (contains no secrets) and `.codepen/` inside each synced demo folder so sync state persists across machines.

@@ -22,6 +22,7 @@ Commands:
   dev [folder-in-src] [--port <port>]             Alias for start
   build [--watch]                                 Build static deployable site into dist/
   cdpn <sync|pull|push|delete> [folder] [flags]   Bulk sync demos with CodePen via CodePen Commander
+  cdpn clone [options] <url> [folder]             Clone a CodePen Pen into src/ via CodePen Commander
 
 Options:
   -h, --help      Show this help message
