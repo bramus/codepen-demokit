@@ -1,24 +1,38 @@
 {
-  "name": "web-platform-demos",
+  "name": "codepen-demokit",
   "version": "1.0.0",
-  "private": true,
-  "description": "Self-contained vanilla web platform demos.",
+  "description": "A zero-config framework for organizing, previewing, deploying, and syncing self-contained vanilla web platform demos with CodePen 2.0.",
   "type": "module",
-  "scripts": {
-    "build": "node scripts/build-json.mjs",
-    "build:watch": "node scripts/build-json.mjs --watch",
-    "dev": "node scripts/serve.mjs",
-    "start": "node scripts/serve.mjs",
-    "cdpn:sync": "node scripts/sync-codepen.mjs sync",
-    "cdpn:pull": "node scripts/sync-codepen.mjs pull",
-    "cdpn:push": "node scripts/sync-codepen.mjs push",
-    "cdpn:delete": "node scripts/sync-codepen.mjs delete",
-    "cdpn": "cdpn"
+  "bin": {
+    "codepen-demokit": "./bin/cli.mjs"
   },
+  "exports": {
+    "./build-json": "./lib/build-json.mjs",
+    "./build-site": "./lib/build-site.mjs",
+    "./config": "./lib/config.mjs",
+    "./init": "./lib/init.mjs",
+    "./serve": "./lib/serve.mjs",
+    "./sync-codepen": "./lib/sync-codepen.mjs"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "shell/",
+    "templates/",
+    "README.md"
+  ],
+  "keywords": [
+    "codepen",
+    "codepen-commander",
+    "demos",
+    "web-platform",
+    "vanilla-js",
+    "static-site"
+  ],
   "engines": {
     "node": ">=20"
   },
-  "devDependencies": {
+  "dependencies": {
     "codepen-commander": "^1.3.0"
   }
 }

@@ -145,7 +145,7 @@ function createErrorState() {
     'Run ',
     createCode('npm run build'),
     ' to generate ',
-    createCode('src/demos.json'),
+    createCode('dist/demos.json'),
     ', or start the dev server with ',
     createCode('npm start'),
     ' to build and watch it automatically.',

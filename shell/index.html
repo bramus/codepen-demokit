@@ -4,14 +4,14 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light dark">
-  <title>Web Platform Demos</title>
+  <title>{{SITE_TITLE}}</title>
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./scripts.js"></script>
 </head>
 <body>
   <header class="site-header">
-    <h1>Web Platform Demos</h1>
-    <p class="subtitle">Self-contained, vanilla HTML, CSS, and JavaScript demos exploring modern web platform features.</p>
+    <h1>{{SITE_TITLE}}</h1>
+    <p class="subtitle">{{SITE_SUBTITLE}}</p>
   </header>
 
   <main class="demo-directory" id="demo-directory">
@@ -19,13 +19,13 @@
     <noscript>
       <section class="empty-state">
         <h2>JavaScript required</h2>
-        <p>Enable JavaScript and run <code>npm start</code> or <code>npm run dev</code> to populate the list of demos from <code>src/</code>.</p>
+        <p>Enable JavaScript to load the list of demos from <code>demos.json</code>.</p>
       </section>
     </noscript>
   </main>
 
   <footer class="site-footer">
-    <p>Run <code>npm start</code> or <code>npm run dev</code> to serve <code>src/</code> locally. See <code>AGENTS.md</code> and <code>README.md</code> for conventions.</p>
+    <p>{{SITE_FOOTER}}</p>
   </footer>
 
   <template id="demo-card-template">

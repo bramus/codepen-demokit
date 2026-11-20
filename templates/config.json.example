@@ -1,0 +1,10 @@
+{
+  "site": {
+    "title": "My Web Demos",
+    "subtitle": "Self-contained, vanilla HTML, CSS, and JavaScript demos exploring modern web platform features."
+  },
+  "codepen": {
+    "user": "",
+    "defaultVisibility": "Private"
+  }
+}

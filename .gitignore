@@ -20,9 +20,8 @@ yarn-debug.log*
 .env.local
 *.log
 
-# CodePen Commander credentials (keep per-demo .cdpn.json committed)
+# CodePen Commander credentials
 .cdpn
 
-# Generated
-src/demos.json
-/config.json
+# Packaging artifacts
+*.tgz
