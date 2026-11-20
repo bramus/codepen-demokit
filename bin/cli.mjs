@@ -3,7 +3,7 @@
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { PACKAGE_DIR, buildSite, watchSite } from '../lib/build-site.mjs';
-import { initProject } from '../lib/init.mjs';
+import { InitCancelledError, initProject } from '../lib/init.mjs';
 import { startServer } from '../lib/serve.mjs';
 import { runCodePenSync } from '../lib/sync-codepen.mjs';
 
@@ -17,7 +17,7 @@ function printHelp() {
   console.log(`Usage: codepen-demokit <command> [options]
 
 Commands:
-  init [dir]                                      Scaffold a new demos repository
+  init                                            Interactively scaffold a new demos repository
   start [folder-in-src] [--port <port>]           Build demos.json, watch src/, and start local dev server
   dev [folder-in-src] [--port <port>]             Alias for start
   build [--watch]                                 Build static deployable site into dist/
@@ -77,25 +77,20 @@ function parseBuildArgs(argv) {
 }
 
 function parseInitArgs(argv) {
-  let targetDir = process.cwd();
-  let gotDir = false;
-
   for (const arg of argv) {
     if (arg === '-h' || arg === '--help') {
-      console.log('Usage: codepen-demokit init [dir]');
+      console.log(`Usage: codepen-demokit init
+
+Interactively prompts for project name, directory, and CodePen details.`);
       process.exit(0);
     } else if (arg.startsWith('-')) {
       throw new Error(`Unknown option '${arg}'.`);
     } else {
-      if (gotDir) {
-        throw new Error(`Unexpected argument '${arg}'.`);
-      }
-      targetDir = path.resolve(process.cwd(), arg);
-      gotDir = true;
+      throw new Error(
+        `Unexpected argument '${arg}'. Run 'codepen-demokit init' without arguments; it will prompt for the project name and directory.`,
+      );
     }
   }
-
-  return { targetDir };
 }
 
 const [command, ...rest] = process.argv.slice(2);
@@ -112,8 +107,8 @@ if (command === '-v' || command === '--version') {
 
 try {
   if (command === 'init') {
-    const { targetDir } = parseInitArgs(rest);
-    await initProject({ targetDir });
+    parseInitArgs(rest);
+    await initProject({ cwd: process.cwd() });
   } else if (command === 'start' || command === 'dev') {
     const { targetFolder, port } = parseStartArgs(rest);
     await startServer({ projectDir: process.cwd(), targetFolder, port });
@@ -149,6 +144,10 @@ try {
     process.exit(1);
   }
 } catch (error) {
+  if (error instanceof InitCancelledError) {
+    console.error('Init cancelled.');
+    process.exit(130);
+  }
   console.error(`Error: ${error.message}`);
   process.exit(1);
 }

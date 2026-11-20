@@ -22,8 +22,20 @@ Requires **Node.js 20+**.
 ### 1. Scaffold a new demos repository
 
 ```sh
-npx codepen-demokit init my-demos
-cd my-demos
+npx codepen-demokit init
+```
+
+The interactive initializer prompts for:
+
+1. **Project name** (default: `"My CodePen Demos"`)
+2. **Directory** (defaults to the slugified project name, e.g. `my-codepen-demos`)
+3. **CodePen username** (optional, stored in `config.json`)
+4. **Default Pen visibility** (`Private`, `Public`, `Protected`, or `Collaborators`; default: `Private`)
+
+Then enter the created folder, initialize Git, and install dependencies:
+
+```sh
+cd my-codepen-demos
 git init
 npm install
 ```
@@ -31,7 +43,7 @@ npm install
 This creates a clean consumer repository:
 
 ```text
-my-demos/
+my-codepen-demos/
 ├── src/                        # Put your self-contained demo folders here
 ├── config.json                 # Site title/subtitle + CodePen profile & default visibility
 ├── config.json.example         # Example configuration
@@ -41,14 +53,14 @@ my-demos/
 └── README.md
 ```
 
-### 2. Configure `config.json` and authenticate with CodePen
+### 2. Review `config.json` and authenticate with CodePen
 
-Edit `config.json` to customize your index page and CodePen profile:
+`init` populates `config.json` from your answers—you can edit it anytime to adjust your index metadata or CodePen profile:
 
 ```json
 {
   "site": {
-    "title": "My Web Demos",
+    "title": "My CodePen Demos",
     "subtitle": "A collection of self-contained web demos.",
     "footer": "Powered by codepen-demokit."
   },
@@ -174,7 +186,7 @@ Deploy the `dist/` directory to any static host (GitHub Pages, Netlify, Cloudfla
 
 | Key | Required | Description |
 | :--- | :---: | :--- |
-| `site.title` | No | Page `<title>` and `<h1>` heading (default: `"Web Demos"`). |
+| `site.title` | No | Page `<title>` and `<h1>` heading (default: `"My CodePen Demos"`). |
 | `site.subtitle` | No | Intro subtitle shown under the heading. |
 | `site.footer` | No | Footer text shown at the bottom of the index page. |
 | `codepen.user` | For `cdpn:*` | CodePen Commander profile name (`npx cdpn auth login <user>`). |
@@ -188,7 +200,7 @@ You can invoke the CLI directly via `npx codepen-demokit <command>` or through y
 
 | Command | Description |
 | :--- | :--- |
-| `codepen-demokit init [dir]` | Scaffold a new demos repository without overwriting existing files. |
+| `codepen-demokit init` | Interactively prompt for project & CodePen details and scaffold a new demos repository without overwriting existing files. |
 | `codepen-demokit start [folder] [--port <port>]` | Build `dist/demos.json`, watch `src/`, and start the local static dev server (alias: `dev`). |
 | `codepen-demokit build [--watch]` | Build the static deployable site into `dist/` (optionally watching `src/` and `config.json`). |
 | `codepen-demokit cdpn <sync\|pull\|push\|delete> [folder] [--dry-run] [--force]` | Bulk sync demos with CodePen via CodePen Commander. |

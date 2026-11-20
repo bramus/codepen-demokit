@@ -1,4 +1,4 @@
-# My Web Demos
+# My CodePen Demos
 
 A collection of self-contained web demos organized with [`codepen-demokit`](https://www.npmjs.com/package/codepen-demokit) and synced with CodePen 2.0.
 

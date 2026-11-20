@@ -14,7 +14,7 @@ This repository is the **`codepen-demokit`** npm package—a framework for organ
 │   ├── build-site.mjs          # Builds static deployable `<projectDir>/dist/`
 │   ├── serve.mjs               # Local dev server (serves `src/` + `shell/` fallback + watches `dist/demos.json`)
 │   ├── sync-codepen.mjs        # Bulk CodePen sync (`sync`, `pull`, `push`, `delete --keep-info`)
-│   └── init.mjs                # Scaffolds a consumer demos repo (`codepen-demokit init [dir]`)
+│   └── init.mjs                # Interactive scaffolder for a consumer demos repo (`codepen-demokit init`)
 ├── shell/                      # Default framework-owned index UI (overridable in consumer `src/`)
 │   ├── index.html
 │   ├── styles.css
