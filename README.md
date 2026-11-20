@@ -137,6 +137,10 @@ npm run cdpn:delete
 # Clone an existing CodePen Pen into src/ (forwards arguments & flags to `cdpn clone`)
 npm run cdpn:clone -- https://codepen.io/username/pen/slug
 npm run cdpn:clone -- https://codepen.io/username/pen/slug group/my-demo
+
+# Scaffold a brand-new CodePen 2.0 Pen in src/ (forwards arguments & flags to `cdpn new`)
+npm run cdpn:new
+npm run cdpn:new -- group/my-demo
 ```
 
 ### Scoping & Flags
@@ -157,11 +161,12 @@ npm run cdpn:delete -- view-transitions/same-document --dry-run
 # Force-pull all linked demos (overwrites local changes and refreshes .cdpn.json)
 npm run cdpn:pull -- --force
 
-# Forward any `cdpn clone` options (such as --force, --json, or --help)
+# Forward any `cdpn clone` or `cdpn new` options (such as --force, --title, --access, --json, or --help)
 npm run cdpn:clone -- --force https://codepen.io/username/pen/slug my-demo
+npm run cdpn:new -- -t "My Demo" --access Private group/my-demo
 ```
 
-`cdpn:clone` runs `cdpn clone` inside `src/` using your `codepen.user` profile from `config.json` (when configured) and forwards all arguments and options directly to CodePen Commander.
+`cdpn:clone` and `cdpn:new` run `cdpn clone` / `cdpn new` inside `src/` using your `codepen.user` profile from `config.json` (when configured) and forward all arguments and options directly to CodePen Commander.
 
 Each synced demo stores non-secret sync metadata in `.cdpn.json` (plus optional `.codepen/pen.config.json`). Keep `.cdpn.json` committed in your demos repo so sync state persists across machines. Add an optional `.cdpnignore` file inside a demo folder to exclude local-only files from syncing.
 
@@ -215,6 +220,7 @@ You can invoke the CLI directly via `npx codepen-demokit <command>` or through y
 | `codepen-demokit build [--watch]` | Build the static deployable site into `dist/` (optionally watching `src/` and `config.json`). |
 | `codepen-demokit cdpn <sync\|pull\|push\|delete> [folder] [--dry-run] [--force]` | Bulk sync demos with CodePen via CodePen Commander. |
 | `codepen-demokit cdpn clone [options] <url> [folder]` | Clone a CodePen Pen into `src/` via `cdpn clone` (passing through arguments & options). |
+| `codepen-demokit cdpn new [options] [folder]` | Scaffold a new CodePen Pen in `src/` via `cdpn new` (passing through arguments & options). |
 
 ---
 

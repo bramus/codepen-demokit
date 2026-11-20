@@ -13,7 +13,7 @@ This repository is the **`codepen-demokit`** npm package—a framework for organ
 │   ├── build-json.mjs          # Scans `<projectDir>/src/` -> builds & watches `demos.json`
 │   ├── build-site.mjs          # Builds static deployable `<projectDir>/dist/`
 │   ├── serve.mjs               # Local dev server (serves `src/` + `shell/` fallback + watches `dist/demos.json`)
-│   ├── sync-codepen.mjs        # CodePen sync & clone (`sync`, `pull`, `push`, `delete --keep-info`, `clone`)
+│   ├── sync-codepen.mjs        # CodePen sync, clone & new (`sync`, `pull`, `push`, `delete --keep-info`, `clone`, `new`)
 │   └── init.mjs                # Interactive scaffolder for a consumer demos repo (`codepen-demokit init`)
 ├── shell/                      # Default framework-owned index UI (overridable in consumer `src/`)
 │   ├── index.html

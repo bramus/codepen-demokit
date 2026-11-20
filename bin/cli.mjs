@@ -23,6 +23,7 @@ Commands:
   build [--watch]                                 Build static deployable site into dist/
   cdpn <sync|pull|push|delete> [folder] [flags]   Bulk sync demos with CodePen via CodePen Commander
   cdpn clone [options] <url> [folder]             Clone a CodePen Pen into src/ via CodePen Commander
+  cdpn new [options] [folder]                     Scaffold a new CodePen Pen in src/ via CodePen Commander
 
 Options:
   -h, --help      Show this help message

@@ -55,8 +55,9 @@ This repository uses `codepen-demokit` (powered by CodePen Commander / `cdpn` un
   - `npm run cdpn:pull` — pull remote updates (supports `-- --force`)
   - `npm run cdpn:delete` — delete linked Pens on CodePen while keeping Pen metadata (`--keep-info`) in `.cdpn.json`
   - All bulk commands support optional folder scoping (e.g., `npm run cdpn:push -- scroll-driven-animations`) and `-- --dry-run`.
-- Cloning a Pen into `src/`:
+- Cloning or scaffolding a Pen into `src/`:
   - `npm run cdpn:clone -- [options] <url> [folder]` — passes arguments through to `cdpn clone` inside `src/` using `codepen.user` from `config.json` (e.g., `npm run cdpn:clone -- https://codepen.io/user/pen/slug group/my-demo`).
+  - `npm run cdpn:new -- [options] [folder]` — passes arguments through to `cdpn new` inside `src/` using `codepen.user` from `config.json` (e.g., `npm run cdpn:new -- group/my-demo`).
 - Other single-Pen commands via `npx cdpn`:
   - Pass `--json` and explicit flags when running non-interactively (e.g., `-t "<title>"`, `--access <Public|Private|Protected|Collaborators>`, `-m "<label>"`, `--yes`).
 - Sync metadata files:

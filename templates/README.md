@@ -38,6 +38,7 @@ npm run cdpn:push      # Push local edits and create Pens for unlinked demos
 npm run cdpn:pull      # Pull remote updates for linked demos
 npm run cdpn:delete    # Delete linked Pens on CodePen (retains Pen info in .cdpn.json)
 npm run cdpn:clone -- <url> [folder]  # Clone a Pen into src/ via `cdpn clone`
+npm run cdpn:new -- [folder]          # Scaffold a new Pen in src/ via `cdpn new`
 ```
 
 Scope any bulk sync command to a group, subgroup, or single demo folder inside `src/`, and pass `--dry-run` to preview:
