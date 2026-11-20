@@ -1,0 +1,24 @@
+# OS
+.DS_Store
+._*
+Thumbs.db
+
+# Node
+node_modules/
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local environment & logs
+.env
+.env.local
+*.log
+
+# CodePen Commander credentials (keep per-demo .cdpn.json committed)
+.cdpn

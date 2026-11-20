@@ -1,0 +1,5 @@
+{
+  "allowOriginTrials": true,
+  "allowVolatileFeatures": true,
+  "baseline": "limited"
+}
