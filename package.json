@@ -9,6 +9,9 @@
     "build:watch": "node scripts/build-json.mjs --watch",
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",
+    "cdpn:sync": "node scripts/sync-codepen.mjs sync",
+    "cdpn:pull": "node scripts/sync-codepen.mjs pull",
+    "cdpn:push": "node scripts/sync-codepen.mjs push",
     "cdpn": "cdpn"
   },
   "engines": {

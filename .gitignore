@@ -25,3 +25,4 @@ yarn-debug.log*
 
 # Generated
 src/demos.json
+/config.json

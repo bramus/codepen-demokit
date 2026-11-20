@@ -23,47 +23,54 @@ npm run build:watch
 
 Open [http://127.0.0.1:3000](http://127.0.0.1:3000) to browse. You can override the port with `PORT=8080 npm start`. To deploy statically, run `npm run build` and publish the `src/` directory (`src/demos.json` is generated and gitignored).
 
-## Syncing with CodePen (`codepen-commander`)
+## Syncing with CodePen
 
-Syncing with CodePen is optional. If you want to clone existing Pens into `src/` or sync local demos back and forth with CodePen 2.0, this project uses [`codepen-commander`](https://www.npmjs.com/package/codepen-commander) (`cdpn`).
+Syncing with CodePen is optional. This repository includes bulk sync npm scripts (`cdpn:sync`, `cdpn:pull`, `cdpn:push`) backed by [`scripts/sync-codepen.mjs`](./scripts/sync-codepen.mjs), which uses [CodePen Commander](https://www.npmjs.com/package/codepen-commander) (`cdpn`) under the hood to keep demos in `src/` synced with CodePen 2.0.
 
-### 1. Install and authenticate (one-time setup)
+### 1. Install, configure, and authenticate (one-time setup)
 
-Install `codepen-commander` and save your CodePen API v2 key to `~/.cdpn` (never committed to this repository):
+1. Install the `codepen-commander` package:
+   ```sh
+   npm install
+   ```
+2. Copy [`config.json.example`](./config.json.example) to `config.json` and set your CodePen profile name (`codepen_user`) and default visibility for newly created Pens (`codepen_default_visibility`: `Public`, `Private`, `Protected`, or `Collaborators`):
+   ```sh
+   cp config.json.example config.json
+   ```
+3. Save your CodePen API v2 key to `~/.cdpn` (never committed to this repository) under the matching profile name:
+   ```sh
+   npx cdpn auth login <codepen_user>
+   npx cdpn auth status
+   ```
+
+### 2. Sync demos with CodePen
 
 ```sh
-npm install
-npx cdpn auth login
-npx cdpn auth status
+# Two-way sync across all demos in src/ (creates unlinked Pens, pushes local edits, pulls remote updates)
+npm run cdpn:sync
+
+# Push local changes and create new Pens for unlinked demos
+npm run cdpn:push
+
+# Pull remote updates from CodePen for linked demos
+npm run cdpn:pull
 ```
 
-### 2. Clone, fork, or scaffold a demo into `src/`
+Useful flags (passed through `--`):
 
 ```sh
-# Clone an existing CodePen Pen into src/
-npx cdpn clone https://codepen.io/<user>/pen/<slug> src/<demo-name>
-npx cdpn clone https://codepen.io/<user>/pen/<slug> src/<group-name>/<demo-name>
+# Preview what would change without pushing or pulling
+npm run cdpn:sync -- --dry-run
+npm run cdpn:push -- --dry-run
+npm run cdpn:pull -- --dry-run
 
-# Fork one of your Pens into src/
-npx cdpn fork https://codepen.io/<user>/pen/<slug> src/<demo-name>
-
-# Scaffold a new 2.0 Pen from a CodePen Template into src/
-npx cdpn new src/<demo-name>
-```
-
-### 3. Sync changes between local files and CodePen
-
-Run sync commands from inside the demo's folder (e.g. `cd src/<demo-name>`):
-
-```sh
-npx cdpn status                   # Compare local files against CodePen
-npx cdpn pull                     # Pull remote updates from CodePen
-npx cdpn push -m "Tweak styles"   # Push local edits (or create & link a new Pen if unlinked)
-npx cdpn deploy                   # Push and deploy to CodePen Hosting
-npx cdpn open                     # Open the Pen in CodePen (--preview / --deploy)
+# Force-pull all linked demos (overwrites local changes and refreshes .cdpn.json)
+npm run cdpn:pull -- --force
 ```
 
 Each synced demo stores non-secret sync metadata in `.cdpn.json` (plus optional `.codepen/pen.config.json`). Keep `.cdpn.json` committed so the demo stays linked across machines. Add an optional `.cdpnignore` file inside a demo folder to exclude local-only files from syncing.
+
+Since CodePen Commander is used under the hood, you can also run `npx cdpn` directly for individual operations (such as `clone`, `fork`, `new`, `deploy`, `open`, or resolving sync conflicts inside a specific demo folder).
 
 ## Structure & Conventions
 
@@ -94,10 +101,12 @@ The browseable index page and all demos live inside `src/`. Each demo lives in i
 │           └── scripts.js
 ├── AGENTS.md                   # Agent instructions
 ├── .mwgrc                      # Modern Web Guidance configuration
-├── package.json                # Build, dev server, and codepen-commander scripts
+├── config.json.example         # Example CodePen sync configuration (copy to config.json)
+├── package.json                # Build, dev server, and CodePen sync scripts
 └── scripts/
     ├── build-json.mjs          # Builds & watches static src/demos.json
-    └── serve.mjs               # Local static server serving src/
+    ├── serve.mjs               # Local static server serving src/
+    └── sync-codepen.mjs        # Bulk CodePen sync script (uses CodePen Commander)
 ```
 
 - **Self-contained**: Every demo folder contains its own `index.html`, optional `styles.css`, optional `scripts.js`, and any required assets (images, fonts, media, or third-party scripts). No shared index styles or cross-demo imports.
