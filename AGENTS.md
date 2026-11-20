@@ -9,6 +9,7 @@ This repository is the **`codepen-demokit`** npm package—a framework for organ
 ├── bin/
 │   └── cli.mjs                 # Unified CLI entrypoint (`codepen-demokit`)
 ├── lib/
+│   ├── blocks.mjs              # CodePen Blocks support (`classic` + `packages`; `validate`/`fingerprint` no-op)
 │   ├── config.mjs              # Loads/validates consumer `config.json` (`site` + `codepen`)
 │   ├── build-json.mjs          # Scans `<projectDir>/src/` -> builds & watches `demos.json`
 │   ├── build-site.mjs          # Builds static deployable `<projectDir>/dist/`
@@ -37,7 +38,7 @@ This repository is the **`codepen-demokit`** npm package—a framework for organ
    - Always validate URLs (`./...` same-origin for local demos; `https://*.codepen.io` for CodePen links).
    - HTML-escape any `site` values rendered into `shell/index.html` (`escapeHtml()` in `lib/config.mjs`).
 3. **Filesystem & CLI safety**:
-   - Enforce strict root boundaries (`candidate.startsWith(root + path.sep)`) and `realpath` verification across `serve.mjs`, `build-json.mjs`, `build-site.mjs`, and `sync-codepen.mjs`.
+   - Enforce strict root boundaries (`candidate.startsWith(root + path.sep)`) and `realpath` verification across `blocks.mjs`, `serve.mjs`, `build-json.mjs`, `build-site.mjs`, and `sync-codepen.mjs`.
    - Never expose dotfiles (`.cdpn.json`, `.cdpn`, `.env`, etc.) over HTTP or copy them into `dist/`.
    - Bind the dev server strictly to `127.0.0.1` (never `0.0.0.0`).
    - Strictly validate `codepen.user` and `codepen.defaultVisibility` before passing them to `cdpn`.

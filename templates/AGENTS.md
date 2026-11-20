@@ -38,8 +38,8 @@ All demos live inside `src/`. Use clear, descriptive `kebab-case` names for all 
 Every demo folder MUST be self-contained and portable so it can be opened, served, or copied independently without breaking—and so it syncs cleanly as a standalone CodePen 2.0 Pen:
 
 1. **Entry point / `.cdpn.json` discovery**:
-   - `codepen-demokit` discovers and lists any folder inside `src/` that contains a `.cdpn.json` or `index.html` file.
-   - Include an `index.html` entry point so standalone demos render cleanly in the browser, or preserve the existing file layout (e.g., `index.pen.html` + `.cdpn.json`) for Pens cloned or forked from CodePen via `cdpn` unless the user explicitly asks to reorganize them.
+   - `codepen-demokit` discovers and lists any folder inside `src/` that contains a `.cdpn.json`, `index.html`, or Classic Pen `index.pen.html` file.
+   - Include an `index.html` entry point so standalone demos render cleanly in the browser, or preserve the existing file layout (e.g., `index.pen.html` + `.codepen/` + `.cdpn.json`, or `package.json` with CodePen's `packages` block) for Pens cloned or forked from CodePen via `cdpn`—`codepen-demokit` automatically handles CodePen's `classic` and `packages` blocks in both `start` and `build`.
 2. **Local assets stay inside the demo folder**:
    - Store local files (stylesheets, scripts, images, SVGs, fonts, media, data files) inside that demo's folder and reference them with relative paths (`./...`).
 3. **No cross-demo coupling**:
