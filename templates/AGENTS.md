@@ -10,7 +10,7 @@ All demos live inside `src/`. Use clear, descriptive `kebab-case` names for all 
 - **Standalone demo** (directly inside `src/`):
   ```text
   src/<demo-name>/
-  ├── index.html
+  ├── index.html      # or Pen entry files (e.g. index.pen.html)
   ├── styles.css      # optional
   ├── scripts.js      # optional
   ├── .cdpn.json      # CodePen sync metadata (when synced via CodePen Commander)
@@ -37,9 +37,9 @@ All demos live inside `src/`. Use clear, descriptive `kebab-case` names for all 
 
 Every demo folder MUST be self-contained and portable so it can be opened, served, or copied independently without breaking—and so it syncs cleanly as a standalone CodePen 2.0 Pen:
 
-1. **Entry point**:
-   - Include an `index.html` entry point so `codepen-demokit` discovers the demo and renders it cleanly in the browser.
-   - For Pens cloned or forked from CodePen via `cdpn`, preserve their existing file layout unless the user explicitly asks to reorganize them.
+1. **Entry point / `.cdpn.json` discovery**:
+   - `codepen-demokit` discovers and lists any folder inside `src/` that contains a `.cdpn.json` or `index.html` file.
+   - Include an `index.html` entry point so standalone demos render cleanly in the browser, or preserve the existing file layout (e.g., `index.pen.html` + `.cdpn.json`) for Pens cloned or forked from CodePen via `cdpn` unless the user explicitly asks to reorganize them.
 2. **Local assets stay inside the demo folder**:
    - Store local files (stylesheets, scripts, images, SVGs, fonts, media, data files) inside that demo's folder and reference them with relative paths (`./...`).
 3. **No cross-demo coupling**:
@@ -66,11 +66,11 @@ This repository uses `codepen-demokit` (powered by CodePen Commander / `cdpn` un
 
 ## 4. Keeping the Demo Index Up to Date
 
-- The web index page and `dist/demos.json` are **automatically built** by `codepen-demokit` from `src/` subfolders (reading each demo's `<title>`, optional `<meta name="description">`, and optional `.cdpn.json` URL). Never manually edit `dist/`.
+- The web index page and `dist/demos.json` are **automatically built** by `codepen-demokit` from `src/` subfolders containing a `.cdpn.json` or `index.html` file (reading each demo's title/description from `index.html` and/or `.cdpn.json`, plus any `.cdpn.json` URL). Never manually edit `dist/`.
 - Whenever you add, clone, fork, scaffold, push to CodePen for the first time, rename, move, or remove a demo, update the `## Demos` section in `README.md`.
 
 ## 5. Local Verification
 
-- Give each demo's `index.html` a descriptive `<title>` and an optional `<meta name="description" content="...">` (displayed automatically on the index card).
+- Give each demo's `index.html` a descriptive `<title>` and an optional `<meta name="description" content="...">` (or set `info.title` / `info.description` in `.cdpn.json`) so it displays cleanly on the index card.
 - Preview locally with `npm start` (serves at `http://127.0.0.1:3000`), or `npm start "group/demo"` to serve a single demo directly as the root.
 - Verify static production builds with `npm run build` (outputs deployable static site to `dist/`).

@@ -7,7 +7,7 @@ Powered by [CodePen Commander](https://www.npmjs.com/package/codepen-commander) 
 ## Features
 
 - **Core CodePen 2.0 Sync**: Built-in bulk `sync`, `push`, `pull`, and `delete` (with `--keep-info`) commands scoped to all of `src/`, a topic group/subgroup, or a single demo—backed by CodePen Commander (`codepen-commander` is included as a direct dependency).
-- **Auto-Generated Demo Index**: Recursively scans `src/` subfolders for demos (standalone, grouped, and arbitrarily nested subgroups), reading each demo's `<title>`, optional `<meta name="description">`, and `.cdpn.json` CodePen link.
+- **Auto-Generated Demo Index**: Recursively scans `src/` for demo folders containing a `.cdpn.json` or `index.html` file (standalone, grouped, and arbitrarily nested subgroups), reading each demo's title/description from `index.html` and/or `.cdpn.json` along with its CodePen link.
 - **Updatable Index UI Shell**: Ships a modern, accessible light/dark index page (`shell/`) that updates automatically when you upgrade `codepen-demokit`—and can be customized via `config.json` or overridden selectively in `src/`.
 - **Zero-Config Local Dev Server**: `start` builds `dist/demos.json`, watches `src/` to rebuild it on the fly, serves demos directly from `src/`, and lets you preview a single demo subfolder as root.
 - **Static Deployment Ready**: `build` outputs a self-contained `dist/` folder ready for GitHub Pages, Netlify, Cloudflare Pages, Vercel, or any static host (stripping `.cdpn.json` and dotfiles automatically).
@@ -81,7 +81,7 @@ npx cdpn auth status
 
 ### 3. Add demos under `src/` and start developing
 
-Each demo lives in its own self-contained `kebab-case` folder inside `src/`—either standalone, inside a topic group, or inside nested subgroups:
+Each demo lives in its own self-contained `kebab-case` folder inside `src/` containing a `.cdpn.json` or `index.html` file—either standalone, inside a topic group, or inside nested subgroups:
 
 ```text
 src/
