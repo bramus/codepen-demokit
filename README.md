@@ -1,6 +1,6 @@
 # `codepen-demokit`
 
-A zero-config npm framework for organizing, previewing, statically deploying, and syncing collections of self-contained vanilla HTML, CSS, and JavaScript demos with **CodePen 2.0**.
+A zero-config npm framework for organizing, previewing, statically deploying, and syncing collections of self-contained web demos with **CodePen 2.0**.
 
 Powered by [CodePen Commander](https://www.npmjs.com/package/codepen-commander) (`cdpn`) under the hood, `codepen-demokit` lets you keep your demos in their own Git repository while getting an automatically generated demo index, a local dev server with live manifest rebuilding, static `dist/` builds, bulk CodePen syncing, and clean one-command framework upgrades (`npm update codepen-demokit`).
 
@@ -48,8 +48,8 @@ Edit `config.json` to customize your index page and CodePen profile:
 ```json
 {
   "site": {
-    "title": "My Web Platform Demos",
-    "subtitle": "Self-contained vanilla HTML, CSS, and JavaScript experiments.",
+    "title": "My Web Demos",
+    "subtitle": "A collection of self-contained web demos.",
     "footer": "Powered by codepen-demokit."
   },
   "codepen": {
@@ -174,7 +174,7 @@ Deploy the `dist/` directory to any static host (GitHub Pages, Netlify, Cloudfla
 
 | Key | Required | Description |
 | :--- | :---: | :--- |
-| `site.title` | No | Page `<title>` and `<h1>` heading (default: `"Web Platform Demos"`). |
+| `site.title` | No | Page `<title>` and `<h1>` heading (default: `"Web Demos"`). |
 | `site.subtitle` | No | Intro subtitle shown under the heading. |
 | `site.footer` | No | Footer text shown at the bottom of the index page. |
 | `codepen.user` | For `cdpn:*` | CodePen Commander profile name (`npx cdpn auth login <user>`). |

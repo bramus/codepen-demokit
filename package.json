@@ -1,7 +1,7 @@
 {
   "name": "codepen-demokit",
   "version": "1.0.0",
-  "description": "A zero-config framework for organizing, previewing, deploying, and syncing self-contained vanilla web platform demos with CodePen 2.0.",
+  "description": "A zero-config framework for organizing, previewing, deploying, and syncing self-contained web demos with CodePen 2.0.",
   "type": "module",
   "bin": {
     "codepen-demokit": "./bin/cli.mjs"
@@ -25,8 +25,7 @@
     "codepen",
     "codepen-commander",
     "demos",
-    "web-platform",
-    "vanilla-js",
+    "web-demos",
     "static-site"
   ],
   "engines": {

@@ -1,6 +1,6 @@
 # Agent Instructions
 
-This repository is a collection of self-contained, vanilla web platform demos powered by [`codepen-demokit`](https://www.npmjs.com/package/codepen-demokit) and synced with CodePen 2.0 via [CodePen Commander](https://www.npmjs.com/package/codepen-commander). Every agent working in this repository MUST follow the rules below.
+This repository is a collection of self-contained web demos powered by [`codepen-demokit`](https://www.npmjs.com/package/codepen-demokit) and synced with CodePen 2.0 via [CodePen Commander](https://www.npmjs.com/package/codepen-commander). Every agent working in this repository MUST follow the rules below.
 
 ## 1. Folder Structure & Naming
 
@@ -11,8 +11,8 @@ All demos live inside `src/`. Use clear, descriptive `kebab-case` names for all 
   ```text
   src/<demo-name>/
   ├── index.html
-  ├── styles.css      # only if needed
-  ├── scripts.js      # only if needed
+  ├── styles.css      # optional
+  ├── scripts.js      # optional
   ├── .cdpn.json      # CodePen sync metadata (when synced via CodePen Commander)
   └── .codepen/       # optional CodePen 2.0 config (e.g. pen.config.json)
   ```
@@ -21,8 +21,8 @@ All demos live inside `src/`. Use clear, descriptive `kebab-case` names for all 
   src/<group-name>/
   ├── <demo-one>/
   │   ├── index.html
-  │   ├── styles.css  # only if needed
-  │   ├── scripts.js  # only if needed
+  │   ├── styles.css  # optional
+  │   ├── scripts.js  # optional
   │   └── .cdpn.json  # when synced
   └── <subgroup-name>/
       └── <demo-two>/
@@ -35,22 +35,14 @@ All demos live inside `src/`. Use clear, descriptive `kebab-case` names for all 
 
 ## 2. Self-Contained Demo Rules
 
-Every demo folder MUST be completely self-contained and portable so it can be opened, served, or copied independently without breaking (and so it syncs cleanly as a standalone CodePen 2.0 Pen):
+Every demo folder MUST be self-contained and portable so it can be opened, served, or copied independently without breaking—and so it syncs cleanly as a standalone CodePen 2.0 Pen:
 
-1. **Standard filenames**:
-   - `index.html` — required entry point.
-   - `styles.css` — stylesheet, included only when CSS is needed.
-   - `scripts.js` — client-side script, included only when JavaScript is needed.
+1. **Entry point**:
+   - Include an `index.html` entry point so `codepen-demokit` discovers the demo and renders it cleanly in the browser.
    - For Pens cloned or forked from CodePen via `cdpn`, preserve their existing file layout unless the user explicitly asks to reorganize them.
-2. **Vanilla JavaScript only**:
-   - Use standard vanilla HTML, CSS, and JavaScript (prefer `<script type="module" src="./scripts.js"></script>` or `<script src="./scripts.js" defer></script>`).
-   - No UI frameworks, no bundlers, no preprocessors, no build steps, and no `node_modules` imports inside demos.
-   - **Prioritize pure native web platform APIs.** Do **not** add polyfills or legacy fallbacks unless explicitly requested by the user.
-   - If a demo relies on an experimental feature, Origin Trial, or browser flag, clearly note the requirement (e.g., minimum browser version or `chrome://flags` setting) in the demo UI (or its `<meta name="description">`) and its entry in `README.md`.
-3. **All external assets stay inside the demo folder**:
-   - Store images, SVGs, fonts, media, data files, or third-party scripts **inside that demo's folder** (e.g., `./assets/` or `./vendor/`) and reference them with relative paths (`./...`).
-   - Do not hotlink third-party CDNs unless explicitly requested.
-4. **No cross-demo coupling**:
+2. **Local assets stay inside the demo folder**:
+   - Store local files (stylesheets, scripts, images, SVGs, fonts, media, data files) inside that demo's folder and reference them with relative paths (`./...`).
+3. **No cross-demo coupling**:
    - Never import or reference files from `src/` root, the repository root, or sibling demos (e.g., `../other-demo/...`).
 
 ## 3. CodePen Sync (`cdpn:*` & CodePen Commander)
@@ -75,9 +67,8 @@ This repository uses `codepen-demokit` (powered by CodePen Commander / `cdpn` un
 - The web index page and `dist/demos.json` are **automatically built** by `codepen-demokit` from `src/` subfolders (reading each demo's `<title>`, optional `<meta name="description">`, and optional `.cdpn.json` URL). Never manually edit `dist/`.
 - Whenever you add, clone, fork, scaffold, push to CodePen for the first time, rename, move, or remove a demo, update the `## Demos` section in `README.md`.
 
-## 5. Code Quality & Local Verification
+## 5. Local Verification
 
-- Use clean, semantic HTML5 with `<!DOCTYPE html>`, `<meta charset="utf-8">`, `<meta name="viewport" content="width=device-width, initial-scale=1">`, a descriptive `<title>`, and an optional `<meta name="description" content="...">` (displayed automatically on the index card).
-- Use safe DOM APIs (`textContent`, `document.createElement()`, `replaceChildren()`) instead of `innerHTML` with dynamic data.
+- Give each demo's `index.html` a descriptive `<title>` and an optional `<meta name="description" content="...">` (displayed automatically on the index card).
 - Preview locally with `npm start` (serves at `http://127.0.0.1:3000`), or `npm start "group/demo"` to serve a single demo directly as the root.
 - Verify static production builds with `npm run build` (outputs deployable static site to `dist/`).

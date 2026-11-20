@@ -1,6 +1,6 @@
 # Agent Instructions (`codepen-demokit`)
 
-This repository is the **`codepen-demokit`** npm package—a framework for organizing, previewing, statically deploying, and syncing self-contained vanilla web platform demos with CodePen 2.0 via [CodePen Commander](https://www.npmjs.com/package/codepen-commander). Actual user demos live in separate consumer repositories that install `codepen-demokit` as a dependency.
+This repository is the **`codepen-demokit`** npm package—a framework for organizing, previewing, statically deploying, and syncing self-contained web demos with CodePen 2.0 via [CodePen Commander](https://www.npmjs.com/package/codepen-commander). Actual user demos live in separate consumer repositories that install `codepen-demokit` as a dependency.
 
 ## 1. Package Architecture
 

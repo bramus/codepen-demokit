@@ -1,7 +1,7 @@
 {
   "site": {
-    "title": "My Web Demos",
-    "subtitle": "Self-contained, vanilla HTML, CSS, and JavaScript demos exploring modern web platform features."
+    "title": "Web Demos",
+    "subtitle": "A collection of self-contained web demos."
   },
   "codepen": {
     "user": "",
