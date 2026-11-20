@@ -50,17 +50,19 @@ function createDemoCard(demo, headingLevel) {
   if (!safeHref) return null;
 
   const title = typeof demo?.title === 'string' && demo.title.trim() ? demo.title.trim() : demo.path;
+  const pathText = typeof demo?.path === 'string' ? demo.path : safeHref.replace(/^\.\//, '');
   const fragment = cardTemplate.content.cloneNode(true);
-  const cardEl = fragment.querySelector('.demo-card');
+
+  const pathWrapperEl = fragment.querySelector('.demo-path');
+  const pathTextEl = fragment.querySelector('.demo-path-text');
+  pathTextEl.textContent = pathText;
+  pathWrapperEl.setAttribute('title', pathText);
 
   const headingEl = createHeading(headingLevel, 'demo-card-title');
-  const linkEl = document.createElement('a');
-  linkEl.className = 'demo-link';
-  linkEl.setAttribute('href', safeHref);
-  linkEl.textContent = title;
-  headingEl.append(linkEl);
-  cardEl.prepend(headingEl);
+  headingEl.textContent = title;
+  pathWrapperEl.after(headingEl);
 
+  const bodyEl = fragment.querySelector('.demo-body');
   const descriptionEl = fragment.querySelector('.demo-description');
   if (typeof demo?.description === 'string' && demo.description.trim()) {
     descriptionEl.textContent = demo.description.trim();
@@ -68,19 +70,83 @@ function createDemoCard(demo, headingLevel) {
     descriptionEl.remove();
   }
 
-  const pathEl = fragment.querySelector('.demo-path');
-  pathEl.textContent = typeof demo?.path === 'string' ? demo.path : safeHref.replace(/^\.\//, '');
+  const tagsEl = fragment.querySelector('.demo-tags');
+  const rawTags = Array.isArray(demo?.tags) ? demo.tags : [];
+  const tagItems = [];
+  for (const rawTag of rawTags) {
+    if (typeof rawTag !== 'string') continue;
+    const cleaned = rawTag.trim();
+    if (!cleaned) continue;
+    const li = document.createElement('li');
+    li.className = 'demo-tag';
+    li.textContent = cleaned;
+    tagItems.push(li);
+  }
+  if (tagItems.length > 0) {
+    tagsEl.replaceChildren(...tagItems);
+  } else {
+    tagsEl.remove();
+  }
+
+  if (bodyEl.childElementCount === 0) {
+    bodyEl.classList.add('is-empty');
+  }
+
+  const openEl = fragment.querySelector('.demo-open');
+  openEl.setAttribute('href', safeHref);
+  openEl.setAttribute('aria-label', `Open Demo: ${title}`);
 
   const codepenEl = fragment.querySelector('.demo-codepen');
   const safeCodePenUrl = toSafeCodePenUrl(demo?.codepenUrl);
   if (safeCodePenUrl) {
     codepenEl.setAttribute('href', safeCodePenUrl);
-    codepenEl.setAttribute('aria-label', `CodePen for ${title}`);
+    codepenEl.setAttribute('aria-label', `Edit ${title} on CodePen`);
   } else {
-    codepenEl.remove();
+    codepenEl.removeAttribute('href');
+    codepenEl.removeAttribute('target');
+    codepenEl.removeAttribute('rel');
+    codepenEl.setAttribute('aria-disabled', 'true');
+    codepenEl.setAttribute('title', 'Not linked to CodePen');
   }
 
   return fragment;
+}
+
+const SUPPORTS_SCROLL_TIMELINE =
+  typeof CSS !== 'undefined' &&
+  typeof CSS.supports === 'function' &&
+  CSS.supports('animation-timeline: scroll(self inline)');
+
+let pathResizeObserver = null;
+
+function syncPathOverflowFallback() {
+  if (SUPPORTS_SCROLL_TIMELINE) return;
+
+  const updateEl = (el) => {
+    const overflows = el.scrollWidth > el.clientWidth + 1;
+    el.toggleAttribute('data-overflows', overflows);
+  };
+
+  const paths = directoryEl.querySelectorAll('.demo-path');
+  if (pathResizeObserver) {
+    pathResizeObserver.disconnect();
+  }
+
+  if (typeof ResizeObserver === 'function') {
+    pathResizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        updateEl(entry.target);
+      }
+    });
+    for (const el of paths) {
+      updateEl(el);
+      pathResizeObserver.observe(el);
+    }
+  } else {
+    for (const el of paths) {
+      updateEl(el);
+    }
+  }
 }
 
 function createGroupSection(headingText, demos, subgroups = [], headingLevel = 2) {
@@ -193,6 +259,7 @@ async function loadDemos() {
     }
 
     directoryEl.replaceChildren(...sections);
+    syncPathOverflowFallback();
   } catch {
     directoryEl.replaceChildren(createErrorState());
   }
