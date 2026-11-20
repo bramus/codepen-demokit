@@ -146,7 +146,7 @@ try {
   }
 } catch (error) {
   if (error instanceof InitCancelledError) {
-    console.error('Init cancelled.');
+    console.error('\nInit cancelled.');
     process.exit(130);
   }
   console.error(`Error: ${error.message}`);

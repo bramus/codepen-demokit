@@ -29,10 +29,9 @@ The interactive initializer prompts for:
 
 1. **Project name** (default: `"My CodePen Demos"`)
 2. **Directory** (defaults to the slugified project name, e.g. `my-codepen-demos`)
-3. **CodePen username** (optional, stored in `config.json`)
-4. **Default Pen visibility** (`Private`, `Public`, `Protected`, or `Collaborators`; default: `Private`)
+3. **CodePen details** (optional — if you choose to set them up now: **CodePen username** and **Default Pen visibility**: `Private`, `Public`, `Protected`, or `Collaborators`; default: `Private`)
 
-After creating the files, if you entered a CodePen username that isn't configured in `~/.cdpn` yet, `init` offers to run `cdpn auth login <username>` right away.
+After creating the files, if you entered a CodePen username that isn't authenticated in `~/.cdpn` yet, `init` lets you know and offers to set up CodePen authentication right away.
 
 Then enter the created folder, initialize Git, and install dependencies:
 
