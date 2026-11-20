@@ -36,7 +36,7 @@ const DEMOS_DIR = path.resolve(ROOT_DIR, "src");
 
 function usage() {
   console.error(
-    "Usage: node ./scripts/sync-codepen.mjs <push|pull|sync|delete> [--dry-run] [--force]"
+    "Usage: node ./scripts/sync-codepen.mjs <push|pull|sync|delete> [folder-in-src] [--dry-run] [--force]"
   );
 }
 
@@ -124,28 +124,41 @@ function loadSyncConfig(configPath = REPO_CONFIG_PATH) {
 
 function parseArgs(argv) {
   let mode = null;
+  let targetFolder = null;
   let dryRun = false;
   let force = false;
 
   for (const arg of argv) {
-    if (arg === "push" || arg === "pull" || arg === "sync" || arg === "delete") {
-      if (mode) {
-        console.error(`Error: Multiple modes specified ('${mode}' and '${arg}').`);
-        usage();
-        process.exit(1);
-      }
-      mode = arg;
-    } else if (arg === "--dry-run") {
+    if (arg === "--dry-run") {
       dryRun = true;
     } else if (arg === "--force" || arg === "-f") {
       force = true;
     } else if (arg === "-h" || arg === "--help") {
       usage();
       process.exit(0);
-    } else {
-      console.error(`Error: Unknown argument '${arg}'.`);
+    } else if (arg.startsWith("-")) {
+      console.error(`Error: Unknown option '${arg}'.`);
       usage();
       process.exit(1);
+    } else if (!mode) {
+      if (arg === "push" || arg === "pull" || arg === "sync" || arg === "delete") {
+        mode = arg;
+      } else {
+        console.error(
+          `Error: Unknown sync mode '${arg}' (expected 'push', 'pull', 'sync', or 'delete').`
+        );
+        usage();
+        process.exit(1);
+      }
+    } else {
+      if (targetFolder !== null) {
+        console.error(
+          `Error: Multiple target folders specified ('${targetFolder}' and '${arg}').`
+        );
+        usage();
+        process.exit(1);
+      }
+      targetFolder = arg;
     }
   }
 
@@ -161,7 +174,7 @@ function parseArgs(argv) {
     process.exit(1);
   }
 
-  return { mode, dryRun, force };
+  return { mode, targetFolder, dryRun, force };
 }
 
 function spawnCdpn(cdpn, args, cwd) {
@@ -306,19 +319,108 @@ function verifyProfileAuth(cdpnBin, requiredProfile) {
   };
 }
 
+function resolveTargetDir(resolvedDemosDir, targetFolder) {
+  if (!targetFolder) {
+    return { absDir: resolvedDemosDir, segments: [], relPrefix: null };
+  }
+
+  if (
+    targetFolder.includes("\0") ||
+    targetFolder.includes("\\") ||
+    path.isAbsolute(targetFolder)
+  ) {
+    console.error(
+      `Error: Invalid folder "${targetFolder}": pass a relative folder path inside src/.`
+    );
+    process.exit(1);
+  }
+
+  const trimmed = targetFolder.replace(/\/+$/, "");
+  if (!trimmed) {
+    return { absDir: resolvedDemosDir, segments: [], relPrefix: null };
+  }
+
+  const segments = trimmed.split("/").filter(Boolean);
+  for (const segment of segments) {
+    if (segment === "." || segment === ".." || segment.startsWith(".")) {
+      console.error(
+        `Error: Invalid folder "${targetFolder}": path traversal and hidden folders are not allowed.`
+      );
+      process.exit(1);
+    }
+  }
+
+  const candidateDir = path.resolve(resolvedDemosDir, ...segments);
+  if (!candidateDir.startsWith(resolvedDemosDir + path.sep)) {
+    console.error(
+      `Error: Invalid folder "${targetFolder}": must resolve within src/.`
+    );
+    process.exit(1);
+  }
+
+  let stat;
+  try {
+    stat = fs.lstatSync(candidateDir);
+  } catch {
+    console.error(`Error: Folder "src/${segments.join("/")}" does not exist.`);
+    process.exit(1);
+  }
+
+  if (stat.isSymbolicLink() || !stat.isDirectory()) {
+    console.error(
+      `Error: "src/${segments.join("/")}" is not a regular directory.`
+    );
+    process.exit(1);
+  }
+
+  const realTargetDir = fs.realpathSync(candidateDir);
+  if (!realTargetDir.startsWith(resolvedDemosDir + path.sep)) {
+    console.error(
+      `Error: Invalid folder "${targetFolder}": resolves outside src/.`
+    );
+    process.exit(1);
+  }
+
+  return {
+    absDir: realTargetDir,
+    segments,
+    relPrefix: segments.join("/"),
+  };
+}
+
 /**
- * Recursively discovers demo folders under `./src/` (standalone, grouped, or nested groups).
- * Explicitly excludes `./src/` root (including `./src/index.html`) and stops descending once
- * a folder contains `index.html` or `.cdpn.json`.
+ * Recursively discovers demo folders under `./src/` (or a specific subfolder inside `./src/`).
+ * Explicitly excludes `./src/` root (including `./src/index.html`). If the target subfolder
+ * itself contains `index.html` or `.cdpn.json`, returns that single demo; otherwise walks
+ * child directories and stops descending once a folder contains `index.html` or `.cdpn.json`.
  */
-function discoverDemoDirs(demosDir) {
+function discoverDemoDirs(demosDir, targetFolder = null) {
   if (!fs.existsSync(demosDir)) {
     console.error(`Error: src directory not found at ${demosDir}.`);
     process.exit(1);
   }
 
   const resolvedDemosDir = fs.realpathSync(path.resolve(demosDir));
+  const target = resolveTargetDir(resolvedDemosDir, targetFolder);
   const demos = [];
+
+  function inspectFolderForDemo(dirPath, segments) {
+    const indexPath = path.join(dirPath, "index.html");
+    const configPath = path.join(dirPath, CONFIG_FILENAME);
+    const hasIndex =
+      fs.existsSync(indexPath) && fs.lstatSync(indexPath).isFile();
+    const hasConfig =
+      fs.existsSync(configPath) && fs.lstatSync(configPath).isFile();
+
+    if (!hasIndex && !hasConfig) return null;
+
+    return {
+      relPath: segments.join("/"),
+      absPath: dirPath,
+      hasIndex,
+      hasConfig,
+    };
+  }
 
   function walk(currentDir, segments, depth) {
     if (depth > MAX_SCAN_DEPTH) return;
@@ -332,20 +434,9 @@ function discoverDemoDirs(demosDir) {
       if (fs.lstatSync(childPath).isSymbolicLink()) continue;
 
       const childSegments = [...segments, entry.name];
-      const indexPath = path.join(childPath, "index.html");
-      const configPath = path.join(childPath, CONFIG_FILENAME);
-      const hasIndex =
-        fs.existsSync(indexPath) && fs.lstatSync(indexPath).isFile();
-      const hasConfig =
-        fs.existsSync(configPath) && fs.lstatSync(configPath).isFile();
-
-      if (hasIndex || hasConfig) {
-        demos.push({
-          relPath: childSegments.join("/"),
-          absPath: childPath,
-          hasIndex,
-          hasConfig,
-        });
+      const demo = inspectFolderForDemo(childPath, childSegments);
+      if (demo) {
+        demos.push(demo);
         continue;
       }
 
@@ -353,9 +444,24 @@ function discoverDemoDirs(demosDir) {
     }
   }
 
-  walk(resolvedDemosDir, [], 1);
-  demos.sort((a, b) => a.relPath.localeCompare(b.relPath, "en", { numeric: true, sensitivity: "base" }));
-  return demos;
+  if (target.segments.length > 0) {
+    const directDemo = inspectFolderForDemo(target.absDir, target.segments);
+    if (directDemo) {
+      demos.push(directDemo);
+    } else {
+      walk(target.absDir, target.segments, target.segments.length + 1);
+    }
+  } else {
+    walk(resolvedDemosDir, [], 1);
+  }
+
+  demos.sort((a, b) =>
+    a.relPath.localeCompare(b.relPath, "en", {
+      numeric: true,
+      sensitivity: "base",
+    })
+  );
+  return { demos, scope: target.relPrefix };
 }
 
 function escapeRegex(str) {
@@ -614,13 +720,15 @@ function inspectDemo(cdpnBin, demo, requiredProfile) {
 }
 
 function main() {
-  const { mode, dryRun, force } = parseArgs(process.argv.slice(2));
+  const { mode, targetFolder, dryRun, force } = parseArgs(process.argv.slice(2));
   const { requiredProfile, defaultNewAccess } = loadSyncConfig();
+  const { demos, scope } = discoverDemoDirs(DEMOS_DIR, targetFolder);
   const prefix = dryRun ? "[DRY RUN] " : "";
+  const scopeNote = scope ? `, scope: src/${scope}` : "";
   const forceNote = force ? ", force: true" : "";
 
   console.log(
-    `${prefix}CodePen Demo Sync (mode: ${mode}, profile: ${requiredProfile}, default visibility: ${defaultNewAccess}${forceNote})`
+    `${prefix}CodePen Demo Sync (mode: ${mode}${scopeNote}, profile: ${requiredProfile}, default visibility: ${defaultNewAccess}${forceNote})`
   );
 
   // 1. Check cdpn is installed
@@ -640,11 +748,11 @@ function main() {
   const auth = verifyProfileAuth(cdpnBin, requiredProfile);
   console.log(`  ✓ Authenticated profile "${auth.name}" (${auth.keyType} key)`);
 
-  // 3. Discover demos under ./src/ (explicitly excluding ./src/index.html)
-  const demos = discoverDemoDirs(DEMOS_DIR);
-  console.log(
-    `  ✓ Found ${demos.length} demo folder(s) (excluding ./src/index.html)\n`
-  );
+  // 3. Report discovered demos
+  const scopeSummary = scope
+    ? `under ./src/${scope}`
+    : "(excluding ./src/index.html)";
+  console.log(`  ✓ Found ${demos.length} demo folder(s) ${scopeSummary}\n`);
 
   const summary = {
     created: [],

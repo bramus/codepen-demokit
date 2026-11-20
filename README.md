@@ -59,14 +59,18 @@ npm run cdpn:pull
 npm run cdpn:delete
 ```
 
-Useful flags (passed through `--`):
+Useful options and scoping (passed through `--`):
 
 ```sh
+# Scope any command to a group, subgroup, or single demo folder inside src/
+npm run cdpn:push -- scroll-driven-animations
+npm run cdpn:delete -- view-transitions/same-document
+npm run cdpn:pull -- view-transitions/same-document/sortable
+
 # Preview what would change without pushing, pulling, or deleting
 npm run cdpn:sync -- --dry-run
-npm run cdpn:push -- --dry-run
-npm run cdpn:pull -- --dry-run
-npm run cdpn:delete -- --dry-run
+npm run cdpn:push -- scroll-driven-animations --dry-run
+npm run cdpn:delete -- view-transitions/same-document --dry-run
 
 # Force-pull all linked demos (overwrites local changes and refreshes .cdpn.json)
 npm run cdpn:pull -- --force
