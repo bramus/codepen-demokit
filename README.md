@@ -32,6 +32,8 @@ The interactive initializer prompts for:
 3. **CodePen username** (optional, stored in `config.json`)
 4. **Default Pen visibility** (`Private`, `Public`, `Protected`, or `Collaborators`; default: `Private`)
 
+After creating the files, if you entered a CodePen username that isn't configured in `~/.cdpn` yet, `init` offers to run `cdpn auth login <username>` right away.
+
 Then enter the created folder, initialize Git, and install dependencies:
 
 ```sh
