@@ -12,12 +12,13 @@
     "cdpn:sync": "node scripts/sync-codepen.mjs sync",
     "cdpn:pull": "node scripts/sync-codepen.mjs pull",
     "cdpn:push": "node scripts/sync-codepen.mjs push",
+    "cdpn:delete": "node scripts/sync-codepen.mjs delete",
     "cdpn": "cdpn"
   },
   "engines": {
     "node": ">=20"
   },
   "devDependencies": {
-    "codepen-commander": "^1.1.0"
+    "codepen-commander": "^1.3.0"
   }
 }

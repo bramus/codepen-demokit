@@ -36,8 +36,22 @@ const DEMOS_DIR = path.resolve(ROOT_DIR, "src");
 
 function usage() {
   console.error(
-    "Usage: node ./scripts/sync-codepen.mjs <push|pull|sync> [--dry-run] [--force]"
+    "Usage: node ./scripts/sync-codepen.mjs <push|pull|sync|delete> [--dry-run] [--force]"
   );
+}
+
+function isSemverAtLeast(version, minVersion) {
+  const parse = (raw) => {
+    const match = /^v?(\d+)\.(\d+)\.(\d+)/.exec(String(raw ?? "").trim());
+    return match ? [Number(match[1]), Number(match[2]), Number(match[3])] : null;
+  };
+  const current = parse(version);
+  const minimum = parse(minVersion);
+  if (!current || !minimum) return true;
+  for (let i = 0; i < 3; i++) {
+    if (current[i] !== minimum[i]) return current[i] > minimum[i];
+  }
+  return true;
 }
 
 function loadSyncConfig(configPath = REPO_CONFIG_PATH) {
@@ -114,7 +128,7 @@ function parseArgs(argv) {
   let force = false;
 
   for (const arg of argv) {
-    if (arg === "push" || arg === "pull" || arg === "sync") {
+    if (arg === "push" || arg === "pull" || arg === "sync" || arg === "delete") {
       if (mode) {
         console.error(`Error: Multiple modes specified ('${mode}' and '${arg}').`);
         usage();
@@ -136,7 +150,7 @@ function parseArgs(argv) {
   }
 
   if (!mode) {
-    console.error("Error: Missing sync mode (expected 'push', 'pull', or 'sync').");
+    console.error("Error: Missing sync mode (expected 'push', 'pull', 'sync', or 'delete').");
     usage();
     process.exit(1);
   }
@@ -483,6 +497,22 @@ function readAndValidateConfig(demo, requiredProfile) {
     };
   }
 
+  if (!config || typeof config !== "object" || Array.isArray(config)) {
+    return {
+      ok: false,
+      message: `Invalid ${CONFIG_FILENAME}: expected a JSON object.`,
+    };
+  }
+
+  // Unlinked info-only `.cdpn.json` (e.g. retained after `cdpn delete --keep-info`)
+  if (
+    config.pen_id === undefined &&
+    config.url === undefined &&
+    config.info !== undefined
+  ) {
+    return { ok: true, linked: false, config };
+  }
+
   if (config.profile && config.profile !== requiredProfile) {
     return {
       ok: false,
@@ -490,7 +520,7 @@ function readAndValidateConfig(demo, requiredProfile) {
     };
   }
 
-  return { ok: true, config };
+  return { ok: true, linked: true, config };
 }
 
 function inspectDemo(cdpnBin, demo, requiredProfile) {
@@ -498,6 +528,7 @@ function inspectDemo(cdpnBin, demo, requiredProfile) {
     return {
       state: "unlinked",
       title: extractHtmlTitle(demo.absPath) || path.basename(demo.absPath),
+      hasRetainedInfo: false,
     };
   }
 
@@ -508,7 +539,18 @@ function inspectDemo(cdpnBin, demo, requiredProfile) {
       message: configRes.message,
     };
   }
-  const { config } = configRes;
+  const { config, linked } = configRes;
+
+  if (!linked) {
+    return {
+      state: "unlinked",
+      title:
+        (typeof config.info?.title === "string" && config.info.title.trim()) ||
+        extractHtmlTitle(demo.absPath) ||
+        path.basename(demo.absPath),
+      hasRetainedInfo: true,
+    };
+  }
 
   const statusRes = runCdpnJson(
     cdpnBin,
@@ -586,6 +628,14 @@ function main() {
     resolveCdpnBinary();
   console.log(`  ✓ cdpn ${cdpnVersion} available (${cdpnSource})`);
 
+  if (mode === "delete" && !isSemverAtLeast(cdpnVersion, "1.3.0")) {
+    console.error(
+      `Error: 'delete' requires codepen-commander >= 1.3.0 for --keep-info (found ${cdpnVersion}).`
+    );
+    console.error("Run `npm install` to update codepen-commander.");
+    process.exit(1);
+  }
+
   // 2. Check profile authentication via `cdpn auth status --json`
   const auth = verifyProfileAuth(cdpnBin, requiredProfile);
   console.log(`  ✓ Authenticated profile "${auth.name}" (${auth.keyType} key)`);
@@ -600,6 +650,7 @@ function main() {
     created: [],
     pushed: [],
     pulled: [],
+    deleted: [],
     upToDate: [],
     skipped: [],
     conflicts: [],
@@ -607,6 +658,69 @@ function main() {
   };
 
   for (const demo of demos) {
+    // --- DELETE (delete every linked demo on CodePen while keeping info in .cdpn.json) ---
+    if (mode === "delete") {
+      if (!demo.hasConfig) {
+        console.log(
+          `- [SKIP] ${demo.relPath} — unlinked (no ${CONFIG_FILENAME}); nothing to delete`
+        );
+        summary.skipped.push(demo.relPath);
+        continue;
+      }
+
+      const configRes = readAndValidateConfig(demo, requiredProfile);
+      if (!configRes.ok) {
+        console.log(`✗ [ERROR] ${demo.relPath}`);
+        console.log(`    ${configRes.message}`);
+        summary.errors.push({ demo: demo.relPath, message: configRes.message });
+        continue;
+      }
+
+      if (!configRes.linked) {
+        console.log(
+          `- [SKIP] ${demo.relPath} — already unlinked (info-only ${CONFIG_FILENAME}); nothing to delete`
+        );
+        summary.skipped.push(demo.relPath);
+        continue;
+      }
+
+      const { config } = configRes;
+      const deleteArgs = [
+        "--profile",
+        requiredProfile,
+        "delete",
+        "--keep-info",
+        "--yes",
+        "--json",
+      ];
+
+      if (dryRun) {
+        console.log(
+          `× [WOULD DELETE] ${demo.relPath} (${config.url || config.pen_id}) — retaining info in ${CONFIG_FILENAME}`
+        );
+        console.log(`    Would run: cdpn ${deleteArgs.join(" ")}`);
+        summary.deleted.push(demo.relPath);
+        continue;
+      }
+
+      console.log(
+        `× [DELETING] ${demo.relPath} (${config.url || config.pen_id})…`
+      );
+      const res = runCdpnJson(cdpnBin, deleteArgs, demo.absPath);
+      if (!res.ok) {
+        console.log(`  ✗ Delete failed: ${res.errorMessage}`);
+        summary.errors.push({ demo: demo.relPath, message: res.errorMessage });
+        continue;
+      }
+      const penTitle = res.json?.contents?.title || path.basename(demo.absPath);
+      const penId = res.json?.contents?.pen_id || config.pen_id;
+      console.log(
+        `  ✓ Deleted "${penTitle}" (${shortId(penId)}) on CodePen (retained info in ${CONFIG_FILENAME})`
+      );
+      summary.deleted.push(demo.relPath);
+      continue;
+    }
+
     // --- FORCE PULL (pull every linked demo unconditionally to refresh files & .cdpn.json) ---
     if (mode === "pull" && force) {
       if (!demo.hasConfig) {
@@ -622,6 +736,14 @@ function main() {
         console.log(`✗ [ERROR] ${demo.relPath}`);
         console.log(`    ${configRes.message}`);
         summary.errors.push({ demo: demo.relPath, message: configRes.message });
+        continue;
+      }
+
+      if (!configRes.linked) {
+        console.log(
+          `- [SKIP] ${demo.relPath} — unlinked (info-only ${CONFIG_FILENAME}); nothing to pull`
+        );
+        summary.skipped.push(demo.relPath);
         continue;
       }
 
@@ -664,11 +786,14 @@ function main() {
       continue;
     }
 
-    // --- UNLINKED (no .cdpn.json) ---
+    // --- UNLINKED (no .cdpn.json or info-only .cdpn.json) ---
     if (info.state === "unlinked") {
       if (mode === "pull") {
+        const reason = info.hasRetainedInfo
+          ? `info-only ${CONFIG_FILENAME}`
+          : `no ${CONFIG_FILENAME}`;
         console.log(
-          `- [SKIP] ${demo.relPath} — unlinked (no ${CONFIG_FILENAME}); nothing to pull`
+          `- [SKIP] ${demo.relPath} — unlinked (${reason}); nothing to pull`
         );
         summary.skipped.push(demo.relPath);
         continue;
@@ -861,10 +986,18 @@ function main() {
   console.log(`  Created:    ${summary.created.length}`);
   console.log(`  Pushed:     ${summary.pushed.length}`);
   console.log(`  Pulled:     ${summary.pulled.length}`);
+  console.log(`  Deleted:    ${summary.deleted.length}`);
   console.log(`  Up to date: ${summary.upToDate.length}`);
   console.log(`  Skipped:    ${summary.skipped.length}`);
   console.log(`  Conflicts:  ${summary.conflicts.length}`);
   console.log(`  Errors:     ${summary.errors.length}`);
+
+  if (!dryRun && summary.deleted.length > 0) {
+    console.log(
+      "\nDeleted Pens move to CodePen Deleted Items (restorable for 3 days):"
+    );
+    console.log("  https://codepen.io/your-work?item_type=DELETED_ITEMS");
+  }
 
   if (summary.conflicts.length > 0) {
     console.log("\nConflicts requiring manual resolution:");

@@ -25,7 +25,7 @@ Open [http://127.0.0.1:3000](http://127.0.0.1:3000) to browse. You can override 
 
 ## Syncing with CodePen
 
-Syncing with CodePen is optional. This repository includes bulk sync npm scripts (`cdpn:sync`, `cdpn:pull`, `cdpn:push`) backed by [`scripts/sync-codepen.mjs`](./scripts/sync-codepen.mjs), which uses [CodePen Commander](https://www.npmjs.com/package/codepen-commander) (`cdpn`) under the hood to keep demos in `src/` synced with CodePen 2.0.
+Syncing with CodePen is optional. This repository includes bulk sync npm scripts (`cdpn:sync`, `cdpn:pull`, `cdpn:push`, `cdpn:delete`) backed by [`scripts/sync-codepen.mjs`](./scripts/sync-codepen.mjs), which uses [CodePen Commander](https://www.npmjs.com/package/codepen-commander) (`cdpn`) under the hood to keep demos in `src/` synced with CodePen 2.0.
 
 ### 1. Install, configure, and authenticate (one-time setup)
 
@@ -54,15 +54,19 @@ npm run cdpn:push
 
 # Pull remote updates from CodePen for linked demos
 npm run cdpn:pull
+
+# Delete all linked Pens on CodePen (passes --keep-info to retain Pen metadata in .cdpn.json for the next push)
+npm run cdpn:delete
 ```
 
 Useful flags (passed through `--`):
 
 ```sh
-# Preview what would change without pushing or pulling
+# Preview what would change without pushing, pulling, or deleting
 npm run cdpn:sync -- --dry-run
 npm run cdpn:push -- --dry-run
 npm run cdpn:pull -- --dry-run
+npm run cdpn:delete -- --dry-run
 
 # Force-pull all linked demos (overwrites local changes and refreshes .cdpn.json)
 npm run cdpn:pull -- --force
