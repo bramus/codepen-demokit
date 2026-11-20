@@ -67,8 +67,9 @@ The browseable index page and all demos live inside `src/`. Each demo lives in i
 ```text
 .
 ├── src/
-│   ├── index.html              # Browseable demo index
+│   ├── index.html              # Browseable demo index (auto-populated from src/ subfolders)
 │   ├── styles.css              # Styles for the index page
+│   ├── scripts.js              # Dynamic demo loader for the index page
 │   ├── <standalone-demo>/
 │   │   ├── index.html
 │   │   ├── styles.css          # optional
@@ -89,7 +90,7 @@ The browseable index page and all demos live inside `src/`. Each demo lives in i
 ├── .mwgrc                      # Modern Web Guidance configuration
 ├── package.json                # Dev server and codepen-commander scripts
 └── scripts/
-    └── serve.mjs               # Local static server serving src/
+    └── serve.mjs               # Local static server serving src/ and /demos.json
 ```
 
 - **Self-contained**: Every demo folder contains its own `index.html`, optional `styles.css`, optional `scripts.js`, and any required assets (images, fonts, media, or third-party scripts). No shared index styles or cross-demo imports.
@@ -114,7 +115,9 @@ See the [`modern-web-guidance` README](https://github.com/GoogleChrome/modern-we
 ## Demos
 
 <!--
-  Keep this section in sync with src/index.html whenever demos are added, cloned, synced, renamed, moved, or removed.
+  src/index.html populates automatically from src/ subfolders (reading each demo's <title>,
+  optional <meta name="description">, and optional .cdpn.json). Keep this Markdown list updated
+  whenever demos are added, cloned, synced, renamed, moved, or removed.
 
   Example format:
 

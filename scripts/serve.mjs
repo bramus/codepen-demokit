@@ -208,6 +208,292 @@ async function resolveSafePath(rawPathname) {
   return { status: 200, filePath: realFilePath, size: stat.size };
 }
 
+const MAX_SCAN_DEPTH = 4;
+const MAX_HTML_HEAD_BYTES = 16 * 1024;
+const MAX_CDPN_JSON_BYTES = 64 * 1024;
+
+const ACRONYMS = new Map([
+  ['ai', 'AI'],
+  ['api', 'API'],
+  ['apis', 'APIs'],
+  ['aria', 'ARIA'],
+  ['cls', 'CLS'],
+  ['css', 'CSS'],
+  ['cwv', 'CWV'],
+  ['dom', 'DOM'],
+  ['html', 'HTML'],
+  ['http', 'HTTP'],
+  ['inp', 'INP'],
+  ['js', 'JS'],
+  ['json', 'JSON'],
+  ['lcp', 'LCP'],
+  ['mcp', 'MCP'],
+  ['pwa', 'PWA'],
+  ['svg', 'SVG'],
+  ['ui', 'UI'],
+  ['url', 'URL'],
+  ['ux', 'UX'],
+  ['wasm', 'WASM'],
+  ['webgl', 'WebGL'],
+  ['webgpu', 'WebGPU'],
+  ['webmcp', 'WebMCP'],
+]);
+
+const MINOR_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'as',
+  'at',
+  'by',
+  'for',
+  'from',
+  'in',
+  'of',
+  'on',
+  'or',
+  'the',
+  'to',
+  'with',
+]);
+
+const NAMED_HTML_ENTITIES = new Map([
+  ['amp', '&'],
+  ['apos', "'"],
+  ['gt', '>'],
+  ['lt', '<'],
+  ['mdash', '—'],
+  ['nbsp', ' '],
+  ['ndash', '–'],
+  ['quot', '"'],
+]);
+
+const utf8Decoder = new TextDecoder('utf-8');
+
+function compareNatural(a, b) {
+  return a.localeCompare(b, 'en', { numeric: true, sensitivity: 'base' });
+}
+
+function formatFolderTitle(folderName) {
+  const words = folderName.split(/[-_]+/).filter(Boolean);
+  return words
+    .map((word, index) => {
+      const lower = word.toLowerCase();
+      if (ACRONYMS.has(lower)) {
+        return ACRONYMS.get(lower);
+      }
+      if (index > 0 && index < words.length - 1 && MINOR_WORDS.has(lower)) {
+        return lower;
+      }
+      return word[0].toUpperCase() + word.slice(1);
+    })
+    .join(' ');
+}
+
+function decodeHtmlEntities(input) {
+  return input.replace(/&(?:#(\d{1,7})|#x([0-9a-fA-F]{1,6})|([a-zA-Z]{2,10}));/g, (match, dec, hex, named) => {
+    if (dec || hex) {
+      const codePoint = Number.parseInt(dec ?? hex, dec ? 10 : 16);
+      if (Number.isInteger(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff) {
+        return String.fromCodePoint(codePoint);
+      }
+      return match;
+    }
+    return NAMED_HTML_ENTITIES.get(named.toLowerCase()) ?? match;
+  });
+}
+
+function normalizeText(value, maxLength) {
+  const cleaned = decodeHtmlEntities(value).replace(/\s+/g, ' ').trim();
+  if (!cleaned) return null;
+  return cleaned.length > maxLength ? `${cleaned.slice(0, maxLength - 1)}…` : cleaned;
+}
+
+function extractTitle(headHtml) {
+  const match = /<title\b[^>]{0,200}>([\s\S]{0,500}?)<\/title>/i.exec(headHtml);
+  return match ? normalizeText(match[1], 160) : null;
+}
+
+function extractMetaDescription(headHtml) {
+  const metaTagPattern = /<meta\b[^>]{1,1000}>/gi;
+  const attrPattern = /([a-zA-Z_:][\w:.-]*)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/g;
+
+  for (const tagMatch of headHtml.matchAll(metaTagPattern)) {
+    let metaName = null;
+    let metaContent = null;
+
+    for (const attrMatch of tagMatch[0].matchAll(attrPattern)) {
+      const key = attrMatch[1].toLowerCase();
+      const value = attrMatch[2] ?? attrMatch[3] ?? attrMatch[4] ?? '';
+      if (key === 'name') {
+        metaName = value.trim().toLowerCase();
+      } else if (key === 'content') {
+        metaContent = value;
+      }
+    }
+
+    if (metaName === 'description' && metaContent !== null) {
+      return normalizeText(metaContent, 320);
+    }
+  }
+
+  return null;
+}
+
+function sanitizeCodePenUrl(rawUrl) {
+  if (typeof rawUrl !== 'string') return null;
+  try {
+    const parsed = new URL(rawUrl.trim());
+    if (parsed.protocol !== 'https:') return null;
+    if (parsed.hostname !== 'codepen.io' && !parsed.hostname.endsWith('.codepen.io')) {
+      return null;
+    }
+    return parsed.href;
+  } catch {
+    return null;
+  }
+}
+
+async function readPartialUtf8(filePath, maxBytes) {
+  const handle = await fs.open(filePath, 'r');
+  try {
+    const buffer = Buffer.alloc(maxBytes);
+    const { bytesRead } = await handle.read(buffer, 0, maxBytes, 0);
+    return utf8Decoder.decode(buffer.subarray(0, bytesRead));
+  } finally {
+    await handle.close();
+  }
+}
+
+async function resolveSafeRealFile(candidatePath) {
+  if (!isWithinRoot(candidatePath, SRC_DIR)) return null;
+  let stat;
+  try {
+    stat = await fs.stat(candidatePath);
+  } catch {
+    return null;
+  }
+  if (!stat.isFile()) return null;
+
+  try {
+    const realPath = await fs.realpath(candidatePath);
+    if (!isWithinRoot(realPath, SRC_REALPATH)) return null;
+    return { realPath, size: stat.size };
+  } catch {
+    return null;
+  }
+}
+
+async function resolveSafeRealDir(candidatePath) {
+  if (!isWithinRoot(candidatePath, SRC_DIR)) return null;
+  let stat;
+  try {
+    stat = await fs.stat(candidatePath);
+  } catch {
+    return null;
+  }
+  if (!stat.isDirectory()) return null;
+
+  try {
+    const realPath = await fs.realpath(candidatePath);
+    if (!isWithinRoot(realPath, SRC_REALPATH)) return null;
+    return realPath;
+  } catch {
+    return null;
+  }
+}
+
+async function readDemoEntry(segments) {
+  const demoDir = path.resolve(SRC_DIR, ...segments);
+  const indexFile = await resolveSafeRealFile(path.join(demoDir, 'index.html'));
+  if (!indexFile) return null;
+
+  let title = null;
+  let description = null;
+  try {
+    const headHtml = await readPartialUtf8(indexFile.realPath, MAX_HTML_HEAD_BYTES);
+    title = extractTitle(headHtml);
+    description = extractMetaDescription(headHtml);
+  } catch {
+    // Fall back to folder name when HTML metadata cannot be read
+  }
+
+  let codepenUrl = null;
+  const cdpnFile = await resolveSafeRealFile(path.join(demoDir, '.cdpn.json'));
+  if (cdpnFile && cdpnFile.size <= MAX_CDPN_JSON_BYTES) {
+    try {
+      const rawJson = await fs.readFile(cdpnFile.realPath, 'utf8');
+      const parsed = JSON.parse(rawJson);
+      codepenUrl = sanitizeCodePenUrl(parsed?.url);
+    } catch {
+      codepenUrl = null;
+    }
+  }
+
+  return {
+    title: title ?? formatFolderTitle(segments.at(-1)),
+    description,
+    path: `${segments.join('/')}/`,
+    href: `./${segments.map(encodeURIComponent).join('/')}/`,
+    codepenUrl,
+  };
+}
+
+async function scanGroupNode(dirRealpath, segments, depth, visitedRealpaths) {
+  if (depth > MAX_SCAN_DEPTH) return { demos: [], groups: [] };
+
+  let entries;
+  try {
+    entries = await fs.readdir(dirRealpath, { withFileTypes: true });
+  } catch {
+    return { demos: [], groups: [] };
+  }
+
+  const demos = [];
+  const groups = [];
+
+  for (const entry of entries) {
+    if (entry.name.startsWith('.') || entry.name === 'node_modules') continue;
+
+    const childSegments = [...segments, entry.name];
+    const childCandidate = path.resolve(SRC_DIR, ...childSegments);
+    const childRealDir = await resolveSafeRealDir(childCandidate);
+    if (!childRealDir || visitedRealpaths.has(childRealDir)) continue;
+
+    visitedRealpaths.add(childRealDir);
+
+    const demoEntry = await readDemoEntry(childSegments);
+    if (demoEntry) {
+      demos.push(demoEntry);
+      continue;
+    }
+
+    const subNode = await scanGroupNode(childRealDir, childSegments, depth + 1, visitedRealpaths);
+    if (subNode.demos.length > 0 || subNode.groups.length > 0) {
+      groups.push({
+        id: childSegments.join('/'),
+        title: formatFolderTitle(entry.name),
+        demos: subNode.demos,
+        groups: subNode.groups,
+      });
+    }
+  }
+
+  return {
+    demos: demos.toSorted((a, b) => compareNatural(a.path, b.path)),
+    groups: groups.toSorted((a, b) => compareNatural(a.id, b.id)),
+  };
+}
+
+async function scanDemos() {
+  const visitedRealpaths = new Set([SRC_REALPATH]);
+  const root = await scanGroupNode(SRC_REALPATH, [], 0, visitedRealpaths);
+  return {
+    groups: root.groups,
+    standalone: root.demos,
+  };
+}
+
 const port = parsePort(process.env.PORT);
 
 const server = http.createServer(async (req, res) => {
@@ -221,6 +507,29 @@ const server = http.createServer(async (req, res) => {
     requestUrl = new URL(req.url ?? '/', `http://${HOST}:${port}`);
   } catch {
     sendError(res, 400, 'Bad Request');
+    return;
+  }
+
+  // TODO(security): Authentication and rate-limiting are intentionally omitted on
+  // /demos.json because this server binds strictly to 127.0.0.1 for local demo
+  // browsing and serves only public, non-sensitive folder metadata from src/.
+  if (ROOT_DIR === SRC_DIR && requestUrl.pathname === '/demos.json') {
+    try {
+      const manifest = await scanDemos();
+      const body = JSON.stringify(manifest);
+      res.writeHead(200, {
+        ...SECURITY_HEADERS,
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Length': Buffer.byteLength(body),
+      });
+      if (req.method === 'HEAD') {
+        res.end();
+      } else {
+        res.end(body);
+      }
+    } catch {
+      sendError(res, 500, 'Internal Server Error');
+    }
     return;
   }
 

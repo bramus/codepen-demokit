@@ -26,14 +26,14 @@ Using the **`modern-web-guidance`** skill is a **hard requirement** for this rep
   - `"allowVolatileFeatures": true`
   - `"baseline": "limited"`
 - **Prioritize pure native web platform APIs.** Do **not** add polyfills or legacy fallbacks unless explicitly requested by the user.
-- If a demo relies on an experimental feature, Origin Trial, or browser flag, clearly note the requirement (e.g., minimum browser version or `chrome://flags` setting) in the demo UI or its entry in `README.md` and `src/index.html`.
+- If a demo relies on an experimental feature, Origin Trial, or browser flag, clearly note the requirement (e.g., minimum browser version or `chrome://flags` setting) in the demo UI (or its `<meta name="description">`) and its entry in `README.md`.
 
 ## 2. Folder Structure & Naming
 
 All demos and the browseable index page live inside `src/`. Use clear, descriptive `kebab-case` names for all demo and group folders.
 
 - **Index page**:
-  - `src/index.html` and `src/styles.css`
+  - `src/index.html`, `src/styles.css`, and `src/scripts.js` (dynamically populated from `src/` subfolders via `scripts/serve.mjs`)
 - **Standalone demo** (directly inside `src/`):
   ```text
   src/<demo-name>/
@@ -101,19 +101,14 @@ This repository relies on [`codepen-commander`](https://www.npmjs.com/package/co
 
 ## 5. Keeping the Demo Index Up to Date
 
-Whenever you add, clone, fork, scaffold, push to CodePen for the first time, rename, move, or remove a demo, you **MUST** update **both**:
-
-1. **`README.md`**:
-   - Update the `## Demos` section with a link to `./src/<demo-name>/` or `./src/<group-name>/<demo-name>/`, a brief description, and an optional CodePen link (from `.cdpn.json`) when synced.
-   - Keep grouped demos organized under a `### <Group Title>` heading, and standalone demos under `### Standalone` (or at the top level of `## Demos` if no groups exist yet).
-2. **`src/index.html`**:
-   - Add, update, or remove the demo card linking to `./<demo-name>/` or `./<group-name>/<demo-name>/` (relative to `src/`), plus the optional `.demo-codepen` link when synced via `.cdpn.json`.
-   - Follow the semantic `<section>` and `<article class="demo-card">` templates documented in the comments of `src/index.html`.
-   - Remove the `.empty-state` block once the first demo is added.
+- **`src/index.html`** is **automatically populated** at runtime: `scripts/serve.mjs` loops over `src/` subfolders to serve `/demos.json`, and `src/scripts.js` renders grouped and standalone demo cards from it (reading each demo's `<title>`, optional `<meta name="description">`, and optional `.cdpn.json` URL). Do **not** manually add hardcoded demo cards to `src/index.html`.
+- **`README.md`**: Whenever you add, clone, fork, scaffold, push to CodePen for the first time, rename, move, or remove a demo, you **MUST** update the `## Demos` section in `README.md`:
+  - Add a link to `./src/<demo-name>/` or `./src/<group-name>/<demo-name>/`, a brief description, and an optional CodePen link (from `.cdpn.json`) when synced.
+  - Keep grouped demos organized under a `### <Group Title>` heading, and standalone demos under `### Standalone` (or at the top level of `## Demos` if no groups exist yet).
 
 ## 6. Code Quality & Local Verification
 
-- Use clean, semantic HTML5 with `<!DOCTYPE html>`, `<meta charset="utf-8">`, `<meta name="viewport" content="width=device-width, initial-scale=1">`, and a descriptive `<title>`.
+- Use clean, semantic HTML5 with `<!DOCTYPE html>`, `<meta charset="utf-8">`, `<meta name="viewport" content="width=device-width, initial-scale=1">`, a descriptive `<title>`, and an optional `<meta name="description" content="...">` (used automatically on the index page card).
 - Use safe DOM APIs (`textContent`, `document.createElement()`, `replaceChildren()`) instead of `innerHTML` with dynamic data.
 - Keep demo code minimal, readable, and focused on illustrating the feature.
 - Preview and verify demos locally using `npm start` or `npm run dev` (serves `src/` at `http://127.0.0.1:3000`), or pass a folder relative to `src/` (e.g., `npm start "scroll-triggered-animations/reveal-on-enter"`) to serve that demo directly as the root.
