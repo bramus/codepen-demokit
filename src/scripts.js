@@ -142,13 +142,13 @@ function createErrorState() {
 
   const paragraph = document.createElement('p');
   paragraph.append(
-    'Start the local dev server with ',
+    'Run ',
+    createCode('npm run build'),
+    ' to generate ',
+    createCode('src/demos.json'),
+    ', or start the dev server with ',
     createCode('npm start'),
-    ' or ',
-    createCode('npm run dev'),
-    ' so ',
-    createCode('src/'),
-    ' subfolders can be discovered automatically.',
+    ' to build and watch it automatically.',
   );
 
   section.append(heading, paragraph);

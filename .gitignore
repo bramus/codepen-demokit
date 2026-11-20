@@ -22,3 +22,6 @@ yarn-debug.log*
 
 # CodePen Commander credentials (keep per-demo .cdpn.json committed)
 .cdpn
+
+# Generated
+src/demos.json

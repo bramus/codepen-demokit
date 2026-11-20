@@ -5,6 +5,8 @@
   "description": "Self-contained vanilla web platform demos.",
   "type": "module",
   "scripts": {
+    "build": "node scripts/build-json.mjs",
+    "build:watch": "node scripts/build-json.mjs --watch",
     "dev": "node scripts/serve.mjs",
     "start": "node scripts/serve.mjs",
     "cdpn": "cdpn"

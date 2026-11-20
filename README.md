@@ -7,16 +7,21 @@ A collection of self-contained, vanilla HTML, CSS, and JavaScript demos explorin
 Start the local static dev server (requires Node.js 20+, no `npm install` needed):
 
 ```sh
-# Serve src/ (the full demo index)
+# Build src/demos.json, watch src/ for changes, and serve src/
 npm start
 # or: npm run dev
 
 # Serve a specific folder inside src/ as the root (e.g. src/sta/demo1/)
 npm start "sta/demo1"
 # or: npm run dev "sta/demo1"
+
+# Build static src/demos.json once (for static hosting / CI deployments)
+npm run build
+# or watch without starting the server:
+npm run build:watch
 ```
 
-Open [http://127.0.0.1:3000](http://127.0.0.1:3000) to browse. You can override the port with `PORT=8080 npm start`.
+Open [http://127.0.0.1:3000](http://127.0.0.1:3000) to browse. You can override the port with `PORT=8080 npm start`. To deploy statically, run `npm run build` and publish the `src/` directory (`src/demos.json` is generated and gitignored).
 
 ## Syncing with CodePen (`codepen-commander`)
 
@@ -67,9 +72,10 @@ The browseable index page and all demos live inside `src/`. Each demo lives in i
 ```text
 .
 ├── src/
-│   ├── index.html              # Browseable demo index (auto-populated from src/ subfolders)
+│   ├── index.html              # Browseable demo index
 │   ├── styles.css              # Styles for the index page
-│   ├── scripts.js              # Dynamic demo loader for the index page
+│   ├── scripts.js              # Loads ./demos.json and renders the index page
+│   ├── demos.json              # Generated static manifest (gitignored)
 │   ├── <standalone-demo>/
 │   │   ├── index.html
 │   │   ├── styles.css          # optional
@@ -88,9 +94,10 @@ The browseable index page and all demos live inside `src/`. Each demo lives in i
 │           └── scripts.js
 ├── AGENTS.md                   # Agent instructions
 ├── .mwgrc                      # Modern Web Guidance configuration
-├── package.json                # Dev server and codepen-commander scripts
+├── package.json                # Build, dev server, and codepen-commander scripts
 └── scripts/
-    └── serve.mjs               # Local static server serving src/ and /demos.json
+    ├── build-json.mjs          # Builds & watches static src/demos.json
+    └── serve.mjs               # Local static server serving src/
 ```
 
 - **Self-contained**: Every demo folder contains its own `index.html`, optional `styles.css`, optional `scripts.js`, and any required assets (images, fonts, media, or third-party scripts). No shared index styles or cross-demo imports.
