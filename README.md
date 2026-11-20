@@ -166,7 +166,7 @@ npm run cdpn:clone -- --force https://codepen.io/username/pen/slug my-demo
 
 Each synced demo stores non-secret sync metadata in `.cdpn.json` (plus optional `.codepen/pen.config.json`). Keep `.cdpn.json` committed in your demos repo so sync state persists across machines. Add an optional `.cdpnignore` file inside a demo folder to exclude local-only files from syncing.
 
-Because CodePen Commander is installed alongside `codepen-demokit`, you can also invoke `npx cdpn` directly for other individual Pen commands (`fork`, `new`, `deploy`, `open`, or manually resolving conflicts inside a specific demo folder).
+Because `codepen-demokit init` also adds `codepen-commander` directly to your repo's `devDependencies`, `cdpn` is directly available via `npx cdpn` (from the repo root or inside any `src/<demo>/` folder) and `npm run cdpn -- <command>` across npm, pnpm, yarn, and bun—no global install required. If you prefer running bare `cdpn` without `npx` anywhere in your terminal, you can optionally install it globally (`npm install -g codepen-commander`).
 
 ---
 

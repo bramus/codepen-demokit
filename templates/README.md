@@ -47,6 +47,8 @@ npm run cdpn:push -- my-group --dry-run
 npm run cdpn:pull -- my-group/my-demo
 ```
 
+For individual Pen commands (`open`, `status`, `fork`, `deploy`, `list`, etc.), run `npx cdpn <command>` (works from the repo root or inside any `src/<demo>/` folder) or `npm run cdpn -- <command>`—or optionally install CodePen Commander globally (`npm install -g codepen-commander`) to run bare `cdpn` directly.
+
 ## Updating `codepen-demokit`
 
 ```sh
