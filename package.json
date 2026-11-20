@@ -14,6 +14,10 @@
     "./serve": "./lib/serve.mjs",
     "./sync-codepen": "./lib/sync-codepen.mjs"
   },
+  "scripts": {
+    "start": "./bin/cli.mjs start",
+    "build": "./bin/cli.mjs build"
+  },
   "files": [
     "bin/",
     "lib/",
