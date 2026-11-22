@@ -1,48 +1,42 @@
 # Agent Instructions (`codepen-demokit`)
 
-This repository is the **`codepen-demokit`** npm package—a framework for organizing, previewing, statically deploying, and syncing self-contained web demos with CodePen 2.0 via [CodePen Commander](https://www.npmjs.com/package/codepen-commander). Actual user demos live in separate consumer repositories that install `codepen-demokit` as a dependency.
+This repository is the **`codepen-demokit`** npm package—an interactive starter pack CLI that scaffolds standalone web demo repositories (modeled on [`bramus/web-platform-demos`](https://github.com/bramus/web-platform-demos)) powered directly by [CodePen Commander](https://www.npmjs.com/package/codepen-commander) (`cdpn` `^1.4.0`).
+
+Generated consumer repositories depend **only** on `codepen-commander` (`devDependencies`), not on `codepen-demokit` at runtime.
 
 ## 1. Package Architecture
 
 ```text
 .
 ├── bin/
-│   └── cli.mjs                 # Unified CLI entrypoint (`codepen-demokit`)
+│   └── cli.mjs                         # CLI entrypoint (`codepen-demokit` / `codepen-demokit init`)
 ├── lib/
-│   ├── blocks.mjs              # CodePen Blocks support (`classic` + `packages`; `validate`/`fingerprint` no-op)
-│   ├── config.mjs              # Loads/validates consumer `config.json` (`site` + `codepen`)
-│   ├── build-json.mjs          # Scans `<projectDir>/src/` -> builds & watches `demos.json`
-│   ├── build-site.mjs          # Builds static deployable `<projectDir>/dist/`
-│   ├── serve.mjs               # Local dev server (serves `src/` + `shell/` fallback + watches `dist/demos.json`)
-│   ├── sync-codepen.mjs        # CodePen sync, clone & new (`sync`, `pull`, `push`, `delete --keep-info`, `clone`, `new`)
-│   └── init.mjs                # Interactive scaffolder for a consumer demos repo (`codepen-demokit init`)
-├── shell/                      # Default framework-owned index UI (overridable in consumer `src/`)
-│   ├── index.html
-│   ├── styles.css
-│   └── scripts.js
-└── templates/                  # Files copied into consumer repos by `codepen-demokit init`
-    ├── gitignore               # Copied as `.gitignore` (no leading dot so `npm pack` always includes it)
-    ├── config.json.example
-    ├── AGENTS.md               # Demo-authoring rules for consumer repos
-    └── README.md
+│   └── init.mjs                        # Interactive scaffolder, auth check & project generator
+├── templates/                          # Files copied/rendered into consumer repos
+│   ├── gitignore                       # Copied as `.gitignore` (no leading dot so `npm pack` always includes it)
+│   ├── github/
+│   │   └── workflows/
+│   │       └── deploy.yml              # Copied as `.github/workflows/deploy.yml` (no leading dot for `npm pack`)
+│   ├── AGENTS.md                       # Demo-authoring & `cdpn` rules for consumer repos
+│   └── README.md                       # Starter README for consumer repos
+└── test/
+    └── init.test.mjs                   # Automated tests (`npm test`)
 ```
 
-## 2. Framework Invariants & Security Rules
+## 2. Package Invariants & Security Rules
 
-1. **Never assume framework root === consumer project root**:
-   - Resolve consumer files (`src/`, `dist/`, `config.json`) relative to `projectDir` (default `process.cwd()`).
-   - Resolve framework assets (`shell/`, `templates/`, `package.json`) relative to `PACKAGE_DIR` (`import.meta.url`).
-2. **Keep `shell/` safe and vanilla**:
-   - No frameworks, no build steps, strict CSP compatible (`script-src 'self'`, `style-src 'self'`).
-   - Use safe DOM APIs (`textContent`, `document.createElement()`, `<template>.content.cloneNode(true)`, `replaceChildren()`) instead of `innerHTML`.
-   - Always validate URLs (`./...` same-origin for local demos; `https://*.codepen.io` for CodePen links).
-   - HTML-escape any `site` values rendered into `shell/index.html` (`escapeHtml()` in `lib/config.mjs`).
-3. **Filesystem & CLI safety**:
-   - Enforce strict root boundaries (`candidate.startsWith(root + path.sep)`) and `realpath` verification across `blocks.mjs`, `serve.mjs`, `build-json.mjs`, `build-site.mjs`, and `sync-codepen.mjs`.
-   - Never expose dotfiles (`.cdpn.json`, `.cdpn`, `.env`, etc.) over HTTP or copy them into `dist/`.
-   - Bind the dev server strictly to `127.0.0.1` (never `0.0.0.0`).
-   - Strictly validate `codepen.user` and `codepen.defaultVisibility` before passing them to `cdpn`.
-4. **Packaging hygiene**:
-   - Keep `templates/gitignore` without a leading dot so `npm pack` always includes it.
-   - Verify published package contents with `npm pack --dry-run` before releasing.
-   - Keep `templates/AGENTS.md` in sync whenever consumer CLI commands or conventions change.
+1. **Never assume package root === target consumer directory**:
+   - Resolve target consumer files relative to `targetDir` / `cwd`.
+   - Resolve package templates and `package.json` relative to `PACKAGE_DIR` (`import.meta.url`).
+   - Never overwrite existing files in the target directory (`writeIfMissing` / `copyIfMissing`).
+2. **Filesystem & CLI safety**:
+   - Enforce strict root containment (`candidate === root || candidate.startsWith(root + path.sep)`) and `lstat`/`realpath` symlink checks in `resolveTargetDirectory()` (`lib/init.mjs`).
+   - Reject control characters, absolute paths, backslashes, `..`, `.`, and hidden directory segments in target directory inputs.
+   - Shell-escape `--title` and `--subtitle` double-quoted arguments written into generated `package.json` scripts (`formatShellDoubleQuotedArg()`) and reject control characters so user input cannot break out of quotes or inject shell commands.
+   - Strictly validate `defaultVisibility` against `VISIBILITY_OPTIONS` (`Private`, `Public`, `Protected`, `Collaborators`) before rendering `AGENTS.md`.
+   - Spawn `codepen-commander` directly via `process.execPath` (`shell: false`) with hardcoded argument arrays (`['auth', 'status', '--offline', '--json']` and `['auth', 'login']`); never log API keys or raw credential objects.
+3. **Packaging hygiene**:
+   - Keep dotfile/dotdir templates without leading dots (`templates/gitignore`, `templates/github/workflows/deploy.yml`) so `npm pack` always includes them.
+   - Keep `test/` excluded from `package.json`'s `"files"` array.
+   - Run `npm test` and `npm pack --dry-run` before releasing.
+   - Keep `templates/AGENTS.md` and `templates/README.md` in sync with `codepen-commander` CLI conventions.

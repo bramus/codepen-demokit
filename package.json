@@ -1,42 +1,37 @@
 {
   "name": "codepen-demokit",
   "version": "1.1.0",
-  "description": "A zero-config framework for organizing, previewing, deploying, and syncing self-contained web demos with CodePen 2.0.",
+  "description": "An interactive starter pack for creating self-contained web demo repositories powered by CodePen Commander (cdpn).",
   "type": "module",
   "bin": {
     "codepen-demokit": "./bin/cli.mjs"
   },
   "exports": {
-    "./blocks": "./lib/blocks.mjs",
-    "./build-json": "./lib/build-json.mjs",
-    "./build-site": "./lib/build-site.mjs",
-    "./config": "./lib/config.mjs",
-    "./init": "./lib/init.mjs",
-    "./serve": "./lib/serve.mjs",
-    "./sync-codepen": "./lib/sync-codepen.mjs"
+    "./init": "./lib/init.mjs"
   },
   "scripts": {
-    "start": "./bin/cli.mjs start",
-    "build": "./bin/cli.mjs build"
+    "test": "node --test"
   },
   "files": [
     "bin/",
     "lib/",
-    "shell/",
     "templates/",
     "README.md"
   ],
   "keywords": [
     "codepen",
     "codepen-commander",
+    "cdpn",
     "demos",
     "web-demos",
+    "starter",
+    "scaffolder",
     "static-site"
   ],
   "engines": {
     "node": ">=20"
   },
   "dependencies": {
-    "codepen-commander": "^1.3.0"
+    "codepen-commander": "^1.4.0"
   }
 }
