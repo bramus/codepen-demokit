@@ -18,7 +18,8 @@ Open [http://127.0.0.1:3000](http://127.0.0.1:3000) to browse.
 - Serve a specific demo folder directly as root: `npx cdpn serve src/group/demo`
 - Override the port: `PORT=8080 npm start` (or `npm start -- --port 8080`)
 - Open automatically in your browser: `npm start -- --open`
-- Build a static deployable site into `dist/`: `npm run build` (or `npm run build:watch`)
+- Build a static deployable site into `dist/` (publishes `Public` demos only by default): `npm run build` (or `npm run build:watch`)
+- Include non-public demos in a static build: `npm run build -- --access all` (or `npm run build -- --access Public,Private`)
 
 ## Syncing with CodePen
 

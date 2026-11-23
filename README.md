@@ -2,7 +2,7 @@
 
 An interactive starter pack for scaffolding self-contained web demo repositories—like [`bramus/web-platform-demos`](https://github.com/bramus/web-platform-demos)—powered directly by [CodePen Commander](https://www.npmjs.com/package/codepen-commander) (`cdpn`).
 
-Because `codepen-commander` (`^1.4.0`) handles local serving, static site builds, CodePen `classic` & `packages` Blocks, customizable index shells, and batch CodePen 2.0 syncing out of the box, `codepen-demokit` scaffolds a clean standalone repository that depends **only** on `codepen-commander`—with no extra runtime framework layer or `config.json` to maintain.
+Because `codepen-commander` (`^1.4.1`) handles local serving, static site builds, CodePen `classic` & `packages` Blocks, customizable index shells, and batch CodePen 2.0 syncing out of the box, `codepen-demokit` scaffolds a clean standalone repository that depends **only** on `codepen-commander`—with no extra runtime framework layer or `config.json` to maintain.
 
 ## Getting Started
 
@@ -35,7 +35,7 @@ my-codepen-demos/
 ├── .gitignore                  # Ignores node_modules/, dist/, .cdpn
 ├── AGENTS.md                   # Demo-authoring & cdpn agent instructions
 ├── README.md                   # Repo documentation & demo index
-├── package.json                # Depends only on codepen-commander (^1.4.0)
+├── package.json                # Depends only on codepen-commander (^1.4.1)
 └── src/
     └── .gitkeep                # Put your self-contained demo folders here
 ```
@@ -47,12 +47,12 @@ The generated `package.json` wires up `codepen-commander` directly with your cho
   "scripts": {
     "start": "cdpn serve src --title \"My CodePen Demos\" --subtitle \"A collection of self-contained web demos.\"",
     "dev": "cdpn serve src --title \"My CodePen Demos\" --subtitle \"A collection of self-contained web demos.\"",
-    "build": "cdpn build src --out ../dist --yes --title \"My CodePen Demos\" --subtitle \"A collection of self-contained web demos.\"",
-    "build:watch": "cdpn build src --out ../dist --yes --watch --title \"My CodePen Demos\" --subtitle \"A collection of self-contained web demos.\"",
+    "build": "cdpn build src --out dist --yes --title \"My CodePen Demos\" --subtitle \"A collection of self-contained web demos.\"",
+    "build:watch": "cdpn build src --out dist --yes --watch --title \"My CodePen Demos\" --subtitle \"A collection of self-contained web demos.\"",
     "cdpn": "cdpn"
   },
   "devDependencies": {
-    "codepen-commander": "^1.4.0"
+    "codepen-commander": "^1.4.1"
   }
 }
 ```
@@ -94,11 +94,12 @@ npm start                                  # Serve src/ with live in-memory demo
 npm start -- --open                        # Start dev server and open in your browser
 PORT=8080 npm start                        # Override the local port
 npx cdpn serve src/group/my-demo           # Serve a single demo folder directly as root
-npm run build                              # Build static deployable site into dist/
+npm run build                              # Build static deployable site into dist/ (Public demos only by default)
+npm run build -- --access all              # Include non-public demos in the build (or --access Public,Private)
 npm run build:watch                        # Rebuild dist/ automatically on changes
 ```
 
-`cdpn serve` and `cdpn build` automatically support CodePen's `classic` and `packages` blocks, strip hidden files (`.cdpn.json`, `.codepen/`, etc.) from `dist/`, and let you customize the index shell via `src/index.html` / `src/styles.css` / `src/scripts.js` or `npx cdpn shell`.
+`cdpn serve` previews all discovered demos in `src/` locally regardless of visibility, while `cdpn build` publishes only `Public` demos (`"access": "Public"` in `.cdpn.json`) by default—pass `--access <levels>` (alias `--visibility <levels>`) or `--access all` to include non-public demos. Both automatically support CodePen's `classic` and `packages` blocks, strip hidden files (`.cdpn.json`, `.codepen/`, etc.) from `dist/`, and let you customize the index shell via `src/index.html` / `src/styles.css` / `src/scripts.js` or `npx cdpn shell`.
 
 ### Syncing with CodePen 2.0
 
@@ -124,6 +125,8 @@ Pass `--dry-run` to preview changes safely, or run inside a `src/<group>/` subfo
 
 ### Deploying
 
+By default, `npm run build` only publishes demos marked `"access": "Public"` in `.cdpn.json` (keeping `Private`, `Protected`, and `Collaborators` drafts out of `dist/`).
+
 - **GitHub Pages**: If you included `.github/workflows/deploy.yml`, enable **Settings → Pages → Source: GitHub Actions** and push to `main`.
 - **Any static host**: Run `npm run build` and publish the `dist/` directory (Netlify, Cloudflare Pages, Vercel, etc.).
 
@@ -139,12 +142,12 @@ npm update codepen-commander
 
 ## Migrating from `codepen-demokit` v1
 
-In v1, `codepen-demokit` bundled its own dev server, static builder, CodePen Blocks compiler, shell UI, `config.json`, and bulk sync wrappers. Those capabilities now live natively inside `codepen-commander` (`^1.4.0`):
+In v1, `codepen-demokit` bundled its own dev server, static builder, CodePen Blocks compiler, shell UI, `config.json`, and bulk sync wrappers. Those capabilities now live natively inside `codepen-commander` (`^1.4.1`):
 
-| Former `codepen-demokit` command | Replacement in `codepen-commander` (`^1.4.0`) |
+| Former `codepen-demokit` command | Replacement in `codepen-commander` (`^1.4.1`) |
 | :--- | :--- |
 | `codepen-demokit start [folder]` | `cdpn serve src` (or `cdpn serve src/<folder>`) |
-| `codepen-demokit build [--watch]` | `cdpn build src --out ../dist --yes [--watch]` |
+| `codepen-demokit build [--watch]` | `cdpn build src --out dist --yes [--watch]` |
 | `codepen-demokit cdpn <sync\|push\|pull\|delete>` | `cdpn <sync\|push\|pull\|delete> all` |
 | `codepen-demokit cdpn clone ...` | `cdpn clone <url> src/<folder>` |
 | `codepen-demokit cdpn new ...` | `cdpn new src/<folder>` |

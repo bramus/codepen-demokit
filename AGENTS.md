@@ -1,6 +1,6 @@
 # Agent Instructions (`codepen-demokit`)
 
-This repository is the **`codepen-demokit`** npm package—an interactive starter pack CLI that scaffolds standalone web demo repositories (modeled on [`bramus/web-platform-demos`](https://github.com/bramus/web-platform-demos)) powered directly by [CodePen Commander](https://www.npmjs.com/package/codepen-commander) (`cdpn` `^1.4.0`).
+This repository is the **`codepen-demokit`** npm package—an interactive starter pack CLI that scaffolds standalone web demo repositories (modeled on [`bramus/web-platform-demos`](https://github.com/bramus/web-platform-demos)) powered directly by [CodePen Commander](https://www.npmjs.com/package/codepen-commander) (`cdpn` `^1.4.1`).
 
 Generated consumer repositories depend **only** on `codepen-commander` (`devDependencies`), not on `codepen-demokit` at runtime.
 

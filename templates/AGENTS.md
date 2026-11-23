@@ -60,6 +60,7 @@ This repository uses [CodePen Commander](https://www.npmjs.com/package/codepen-c
     npx cdpn init src/<path-to-demo> -t "<Demo Title>" --visibility {{DEFAULT_VISIBILITY}} --json
     ```
   - Pass additional flags when relevant (`-d "<description>"`, `--tags tag1,tag2`, `--blocks packages`, etc.). Default visibility for new unsynced demos in this repository is `{{DEFAULT_VISIBILITY}}` unless specified otherwise.
+  - Non-`Public` demos (`Private`, `Protected`, `Collaborators`) are visible locally in `cdpn serve` (`npm start`) and excluded from static builds (`npm run build`) by default until their `info.access` is set to `"Public"` (e.g., via `npx cdpn privacy public` inside a linked demo folder, or by editing `info.access` in `.cdpn.json` and syncing), unless `--access <levels>` / `--visibility <levels>` is passed to `cdpn build`.
   - Do not overwrite an existing `.cdpn.json` or `.codepen/pen.config.json` (e.g. in demos cloned, forked, or scaffolded via `cdpn`, or demos that already declare additional blocks such as `classic-1` or `packages-1`).
 - **Cloning, forking, or scaffolding a Pen into `src/`**:
   - `npx cdpn clone <url> src/<folder>` — clone an existing CodePen Pen into `src/`
@@ -85,11 +86,13 @@ This repository uses [CodePen Commander](https://www.npmjs.com/package/codepen-c
 
 ## 4. Keeping the Demo Index Up to Date
 
-- The web index page and `demos.json` are **automatically generated** by `cdpn serve` (in-memory) and `cdpn build` (`dist/demos.json`) from `src/` subfolders containing a `.cdpn.json` file (reading each demo's title, description, tags, and CodePen URL from `.cdpn.json`, with fallback to `index.html` `<title>` / `<meta name="description">`). Never manually edit `dist/`.
+- The web index page and `demos.json` are **automatically generated** from `src/` subfolders containing a `.cdpn.json` file (reading each demo's title, description, tags, and CodePen URL from `.cdpn.json`, with fallback to `index.html` `<title>` / `<meta name="description">`). Never manually edit `dist/`.
+  - `cdpn serve` serves **all** discovered `.cdpn.json` demos locally (in-memory `demos.json`), regardless of visibility.
+  - `cdpn build` publishes **only `Public` demos** (`"access": "Public"` in `.cdpn.json`) into `dist/` and `dist/demos.json` by default. Non-public demos (`Private`, `Protected`, `Collaborators`) are excluded unless `--access <levels>` (alias `--visibility <levels>`, e.g., `--access Public,Private` or `--access all`) is passed.
 - Whenever you add, initialize, clone, fork, scaffold, push to CodePen for the first time, rename, move, or remove a demo, update the `## Demos` section in `README.md`.
 
 ## 5. Local Verification
 
 - Give each demo a descriptive `info.title` and optional `info.description` in `.cdpn.json` (plus matching `<title>` and `<meta name="description" content="...">` in `index.html`) so it displays cleanly on the index card.
 - Preview locally with `npm start` (runs `cdpn serve src ...` at `http://127.0.0.1:3000`), or `npx cdpn serve src/<group>/<demo>` to serve a single demo directly as the root.
-- Verify static production builds with `npm run build` (runs `cdpn build src --out ../dist --yes ...` and outputs the deployable static site to `dist/`).
+- Verify static production builds with `npm run build` (runs `cdpn build src --out dist --yes ...` and outputs the deployable static site of `Public` demos to `dist/`; pass `-- --access all` or `-- --access Public,Private` to include non-public demos).

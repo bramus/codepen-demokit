@@ -32,6 +32,6 @@
     "node": ">=20"
   },
   "dependencies": {
-    "codepen-commander": "^1.4.0"
+    "codepen-commander": "^1.4.1"
   }
 }
